@@ -71,9 +71,15 @@ function p_render_tree($nodo) {
     $texto = (isset($nodo['prg_texto'])) ? trim($nodo['prg_texto']) : '';
     $texto = str_replace("\n", "<br>", $texto);
     //$texto = "<pre>$texto</pre>";
+    $validacion = (isset($nodo['prg_validacion'])) ? trim($nodo['prg_validacion']) : '';
+    $ayuda = (isset($nodo['prg_ayuda'])) ? trim($nodo['prg_ayuda']) : '';
+    $prefijo = (isset($nodo['prg_prefijo'])) ? trim($nodo['prg_prefijo']) : '';
+    $subfijo = (isset($nodo['prg_subfijo'])) ? trim($nodo['prg_subfijo']) : '';
+    $imagen = (isset($nodo['prg_imagen'])) ? trim($nodo['prg_imagen']) : '';
 
     $prg_id = $nodo['prg_id'];
-    $name = 'prg'.$prg_id;
+    //$name = 'prg'.$prg_id;
+    $name = $prg_id;
     $id = $name;
     $value = isset($respuestas[$prg_id]) ? $respuestas[$prg_id] : '';
 
@@ -113,26 +119,98 @@ function p_render_tree($nodo) {
      */
     $tipo = (isset($nodo['prg_tipo_pregunta']) && !empty($nodo['prg_tipo_pregunta']) && isset($tipos_pregunta[$nodo['prg_tipo_pregunta']])) ? $tipos_pregunta[$nodo['prg_tipo_pregunta']] : 'default';
 
+    //echo "TIPO:$tipo";
     switch($tipo){
     case 'texto':
-        echo $texto . ': ';
-        echo '<input type="text" class="form-control" style="width:50%;" name="'.$name.'" id="'.$id.'" value="'.$value.'">'; 
+        $validacion = (!empty($validacion) && ctype_digit($validacion)) ? 'maxlength="'.$validacion.'"' : $validacion;
+        if ($tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'grupo' ) {
+
+            echo '<div style="border:solid 2px #EEE;margin:5px;padding:5px;">';
+
+              echo '<div style="background-color:#EEE;color:#333;font-size:20px;padding:5px;">';
+                echo $texto . ':';
+              echo '</div>';
+
+              echo '<div class="row">';
+                echo '<div class="col-md-6">';
+                  echo (($prefijo != '' || $subfijo != '') ? '<div class="input-group">' : '');
+                    echo '<input type="text" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
+                  echo (($prefijo != '' || $subfijo != '') ? '</div>' : '');
+                  echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+                echo '</div>';
+              echo '</div>';
+            echo '</div>';
+        } else {
+            echo '<div class="row">';
+              echo '<div class="col-md-6">';
+                echo '<label for="'.$id.'">'.$texto . ': </label>';
+                echo (($prefijo != '' || $subfijo != '') ? '<div class="input-group">' : '');
+                  echo '<input type="text" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
+                echo (($prefijo != '' || $subfijo != '') ? '</div>' : '');
+                echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+              echo '</div>';
+            echo '</div>';
+        }
         break;
     case 'multitexto':
-        echo $texto . ': ';
-        echo '<textarea class="form-control" style="width:50%;" name="'.$name.'" id="'.$id.'" value="'.$value.'"></textarea>'; 
+        echo '<div class="row"><div class="col-md-6">';
+          echo '<label for="'.$id.'">'.$texto . ': </label>';
+          echo '<textarea class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>' . $value . '</textarea>'; 
+          echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        echo '</div></div>';
         break;
     case 'fecha':
-        echo $texto . ': ';
-        echo '<input type="date" class="form-control" style="width:50%;" name="'.$name.'" id="'.$id.'" value="'.$value.'">'; 
+        echo '<div class="row"><div class="col-md-6">';
+          echo '<label for="'.$id.'">'.$texto . ': </label>';
+          echo '<input type="date" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
+          echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        echo '</div></div>';
+        break;
+    case 'hora':
+        echo '<div class="row"><div class="col-md-6">';
+          echo '<label for="'.$id.'">'.$texto . ': </label>';
+          echo '<input type="time" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
+          echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        echo '</div></div>';
         break;
     case 'numero':
-        echo $texto . ': ';
-        echo '<input type="number" class="form-control" style="width:50%;" name="'.$name.'" id="'.$id.'" value="'.$value.'">'; 
+        $validacion = (!empty($validacion) && ctype_digit($validacion)) ? 'maxlength="'.$validacion.'"' : $validacion;
+        if ($tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'grupo' ) {
+
+            echo '<div style="border:solid 2px #EEE;margin:5px;padding:5px;">';
+
+            echo '<div style="background-color:#EEE;color:#333;font-size:20px;padding:5px;">';
+            echo $texto . ':';
+            echo '</div>';
+
+            echo '<div class="row"><div class="col-md-6">';
+            echo (($prefijo != '' || $subfijo != '') ? '<div class="input-group">' : '');
+            echo ($prefijo != '' ? '<div class="input-group-addon">'.$prefijo.'</div>' : '');
+            echo '<input type="number" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
+            echo ($subfijo != '' ? '<div class="input-group-addon">'.$subfijo.'</div>' : '');
+            echo (($prefijo != '' || $subfijo != '') ? '</div>' : '');
+            echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+            echo '</div></div>';
+            echo '</div>';
+        } else {
+            echo '<div class="row"><div class="col-md-6">';
+            echo '<label for="'.$id.'">'.$texto . ': </label>';
+            echo (($prefijo != '' || $subfijo != '') ? '<div class="input-group">' : '');
+            echo ($prefijo != '' ? '<div class="input-group-addon">'.$prefijo.'</div>' : '');
+            echo '<input type="number" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
+            echo ($subfijo != '' ? '<div class="input-group-addon">'.$subfijo.'</div>' : '');
+            echo (($prefijo != '' || $subfijo != '') ? '</div>' : '');
+            echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+            echo '</div></div>';
+            break;
+        }
         break;
     case 'email':
-        echo $texto . ': ';
-        echo '<input type="email" class="form-control" style="width:50%;" name="'.$name.'" id="'.$id.'" value="'.$value.'">'; 
+        echo '<div class="row"><div class="col-md-6">';
+          echo '<label for="'.$id.'">'.$texto . ': </label>';
+          echo '<input type="email" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
+          echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        echo '</div></div>';
         break;
     case 'comentario':
         echo $texto;
@@ -155,11 +233,13 @@ function p_render_tree($nodo) {
     case 'check_no':
         break;
     case 'check':
+        //echo 'izzz';
         echo '<div style="border:solid 2px #EEE;margin:5px;padding:5px;">';
 
         echo '<div style="background-color:#EEE;color:#333;font-size:20px;padding:5px;">';
         echo $texto ;
         echo '</div>';
+        echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
         echo '<div style="">';
         foreach($nodo['hijos'] as $hijo){
             echo '<div>';
@@ -186,9 +266,11 @@ function p_render_tree($nodo) {
         echo '<div style="background-color:#EEE;color:#333;font-size:20px;padding:5px;">';
         echo $texto ;
         echo '</div>';
-        echo '<div style="">';
+        echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        echo '<div style="padding-left:20px;">';
+        $class_radio = count($nodo['hijos']) > 3 ? 'radio' : 'radio-inline';
         foreach($nodo['hijos'] as $hijo){
-            echo '<label class="radio-inline">';
+            echo '<label class="'.$class_radio.'">';
             echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  onchange="p_mostrar_ocultar_hijos(this)">';
             echo $hijo['prg_texto'];
             echo '</label>';
@@ -227,6 +309,7 @@ function p_render_tree($nodo) {
         echo '<div style="background-color:#EEE;color:#333;font-size:20px;padding:5px;">';
         echo $texto ;
         echo '</div>';
+        echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
         echo '<table style="">';
         $cabecera = '';
         $cuerpo = '';
@@ -296,6 +379,7 @@ function p_render_tree($nodo) {
         echo '<div style="background-color:#000;color:#FFF;font-size:40px;padding:5px;">';
         echo $texto ;
         echo '</div>';
+        echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
         echo '<div style="">';
         foreach($nodo['hijos'] as $hijo){
             echo '<div>';
@@ -309,19 +393,26 @@ function p_render_tree($nodo) {
         break;
 
     case 'subgrupo':
-        if ($tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'subgrupo') {
+        //if ($tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'subgrupo' 
+        //    || $tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == '' 
+        //    || $tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'radio' 
+        //    || $tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'check' ) {
 
             echo '<div style="border:solid 2px #EEE;margin:5px;padding:5px;">';
 
             echo '<div style="background-color:#EEE;color:#333;font-size:20px;padding:5px;">';
-        } else {
+        //} else {
         //var_dump($nodo['padre']);
-            echo '<div style="border:solid 1px #666;">';
+        //    echo '<div style="border:solid 1px #666;">';
 
-            echo '<div style="background-color:#CCC;color:#000;font-size:30px;padding:5px;">';
-        }
+        //    echo '<div style="background-color:#CCC;color:#000;font-size:30px;padding:5px;">';
+        // }
         echo $texto ;
         echo '</div>';
+        echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        if ($imagen != '') {
+            echo '<img src="/img/'.$imagen.'">';
+        }
         echo '<div style="padding:5px;">';
         foreach($nodo['hijos'] as $hijo){
             echo '<div>';
@@ -359,7 +450,7 @@ function p_render_tree($nodo) {
 </h1>
     <?php if(isset($encuesta)): ?><i>Encuesta llenada <?php echo $encuesta['enc_creado']; ?></i><hr><?php endif; ?>
 
-<form onsubmit="return false;">
+<form id="formulario" onsubmit="return false;">
   <?php p_render_tree($tree['']); ?>
 <!--input type="button" value="<?php echo (isset($encuesta) ? 'Guardar cambios' : 'Registrar nueva encuesta') ; ?>" onclick="p_enviar_formulario()" /-->
 <button class="btn btn-primary" onclick="p_enviar_formulario()" />
@@ -371,6 +462,8 @@ function p_render_tree($nodo) {
 <script>
 function p_enviar_formulario() {
     var respuestas_json = [];
+    var respuestas_json = $('#formulario').serializeArray();
+    /*
     var respuestas = document.getElementsByTagName('input');
     console.log(respuestas);
     for(respuesta in respuestas) {
@@ -383,21 +476,23 @@ function p_enviar_formulario() {
             respuestas_json.push({id: id, valor: valor});
             //respuestas_json[id] = valor;
         }
-    }
+}
+     */
+
     //respuestas.forEach(function(respuesta){
     //    json[respuesta.id] = respuesta.value;
     //});
     console.log('JSON: ', respuestas_json);
     var jsondata = JSON.stringify(respuestas_json);
     var xmlhttp = new XMLHttpRequest();
-    var url = "/esamyn/_guardar_respuestas";
+    var url = "/_guardar_respuestas";
     xmlhttp.open("POST", url, true);
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     //xmlhttp.setRequestHeader("Content-type", "application/json");
     xmlhttp.onreadystatechange = function () { //Call a function when the state changes.
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             console.log('RESPUESTA REST: ', xmlhttp.responseText);
-            window.location.replace('/esamyn/main');
+            //window.location.replace('/main');
         }
     }
     console.log('INFO ENVIADA:', jsondata);
@@ -424,15 +519,21 @@ function p_mostrar_ocultar_hijos(target){
         //if (typeof(input.onchange === 'function')){
         if (input.type=='radio' || input.type == 'checkbox'){
             id = input.id;
-            hijos = document.getElementById('hijos_' + id);
+            //hijos = document.getElementById('hijos_' + id);
             if (input.checked){
-            //input.onchange();
-                hijos.style.display = '';
+            //    hijos.style.display = '';
+                $('#hijos_' + id).show('fast');
             } else {
-                hijos.style.display = 'none';
+            //    hijos.style.display = 'none';
+                $('#hijos_' + id).hide('fast');
             }
+            //$('#hijos_' + id).toggle(input.checked);
         }
     }
 
 }
+$.validate({
+    modules : 'html5,date',
+    lang: 'es'
+});
 </script>

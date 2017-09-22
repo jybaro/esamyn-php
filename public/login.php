@@ -30,7 +30,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         $_SESSION['ess_nombre'] = $ess_nombre;
 
         $destino = ($rol == 1) ? 'admin' : (($rol == 2) ? 'supervisor' : 'operador');
-        header("Location: /esamyn/$destino");
+        header("Location: /$destino");
         //echo "logueado: ";
         //var_dump($_SESSION);
     } else {
@@ -56,7 +56,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
 
 <div class="container">
 
-      <form action = "/esamyn/login" method="POST" class="form-signin">
+      <form action = "/login" method="POST" class="form-signin">
         <h2 class="form-signin-heading">Ingreso a ESAMyN</h2>
         <label for="cedula" class="sr-only">Número de cédula</label>
         <input type="text" id="cedula" name="cedula" class="form-control" placeholder="cedula" required autofocus>

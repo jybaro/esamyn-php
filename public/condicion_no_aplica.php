@@ -72,7 +72,7 @@ function p_abrir_modal(data){
 function p_enviar(){
     var condicion_no_aplica = {};
     $.ajax({
-        url: '/esamyn/_guardar/condicion_no_aplica',
+        url: '/_guardar/condicion_no_aplica',
         type: 'POST',
         dataType: 'json',
         success: function(data){
@@ -84,7 +84,7 @@ function p_enviar(){
 }
 function p_listar(){
     $.ajax({
-        url: '/esamyn/_listar/condicion_no_aplica',
+        url: '/_listar/condicion_no_aplica',
         success: function(data){
             p_renderizar(eval(data));
         }

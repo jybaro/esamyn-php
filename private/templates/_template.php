@@ -27,8 +27,9 @@ body { padding-top: 70px; }
       <a class="navbar-brand" href="#">ESAMyN - 
       <?php
 //var_dump($_SESSION);
-if (isset($_SESSION['es_nombre'])){
-    echo "Establecimiento de Salud: ". $_SESSION['es_nombre'];
+if (isset($_SESSION['ess_nombre'])){
+    //echo "Establecimiento de Salud: ". $_SESSION['ess_nombre'];
+    echo $_SESSION['ess_nombre'];
 }
 ?></a>
     </div>
@@ -39,20 +40,20 @@ if (isset($_SESSION['es_nombre'])){
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Formularios<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="/esamyn/main">Listar</a></li>
+            <li><a href="/main">Listar</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="/esamyn/form/1">1. Formulario de Información del Establecimiento</a></li>
-            <li><a href="/esamyn/form/2">2. Formulario de Observación</a></li>
-            <li><a href="/esamyn/form/3">3. Formulario de Encuesta para Madres Gestantes</a></li>
-            <li><a href="/esamyn/form/4">4. Formulario de Encuesta para Madres Puérperas</a></li>
-            <li><a href="/esamyn/form/5">5a. Formulario de Encuesta para Personal de Salud en Contacto con la Madre</a></li>
-            <li><a href="/esamyn/form/6">5b. Formulario de Encuesta para Personal de Salud sin contacto directo con madres</a></li>
-            <li><a href="/esamyn/form/7">6. Formulario de Revisión de Historias Clínicas</a></li>
+            <li><a href="/form/1">1. Formulario de Información del Establecimiento</a></li>
+            <li><a href="/form/2">2. Formulario de Observación</a></li>
+            <li><a href="/form/3">3. Formulario de Encuesta para Madres Gestantes</a></li>
+            <li><a href="/form/4">4. Formulario de Encuesta para Madres Puérperas</a></li>
+            <li><a href="/form/5">5a. Formulario de Encuesta para Personal de Salud en Contacto con la Madre</a></li>
+            <li><a href="/form/6">5b. Formulario de Encuesta para Personal de Salud sin contacto directo con madres</a></li>
+            <li><a href="/form/7">6. Formulario de Revisión de Historias Clínicas</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="/esamyn/cargarForm">Cargar formulario</a></li>
+            <li><a href="/cargarForm">Cargar formulario</a></li>
           </ul>
         </li>
-        <li><a href="/esamyn/evaluacion">Evaluación <span class="sr-only">(current)</span></a></li>
+        <li><a href="/evaluacion">Evaluación <span class="sr-only">(current)</span></a></li>
       </ul>
       <!--form class="navbar-form navbar-left">
         <div class="form-group">
@@ -65,24 +66,29 @@ if (isset($_SESSION['es_nombre'])){
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Administración<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="/esamyn/es">Establecimientos de Salud</a></li>
-            <li><a href="/esamyn/cargarEs">Cargar ES</a></li>
-            <li><a href="/esamyn/CondicionesEs">Condiciones</a></li>
+            <li><a href="/es">Establecimientos de Salud</a></li>
+            <li><a href="/cargarEs">Cargar ES</a></li>
+            <li><a href="/CondicionesEs">Condiciones</a></li>
             <?php if ($_nivel <= 1): ?>
             <li role="separator" class="divider"></li>
-            <li><a href="/esamyn/usuarios">Usuarios</a></li>
-            <li><a href="/esamyn/preguntas">Preguntas</a></li>
+            <li><a href="/usuarios">Usuarios</a></li>
+            <li><a href="/preguntas">Preguntas</a></li>
             <?php endif; ?>
           </ul>
         </li>
         <?php endif; ?>
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Opciones de usuario<span class="caret"></span></a>
+          <!--a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Opciones de usuario<span class="caret"></span></a-->
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><?php
+if (isset($_SESSION['cedula'])){
+    echo $_SESSION['cedula'];
+}
+          ?><span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="/esamyn/infoUsuario">Ver información de usuario</a></li>
-            <li><a href="/esamyn/cambiarClave">Cambiar contraseña</a></li>
+            <li><a href="/infoUsuario">Ver información de usuario</a></li>
+            <li><a href="/cambiarClave">Cambiar contraseña</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="/esamyn/login/destroy">Cerrar sesión</a></li>
+            <li><a href="/login/destroy">Cerrar sesión</a></li>
           </ul>
         </li>
       </ul>
@@ -93,6 +99,7 @@ if (isset($_SESSION['es_nombre'])){
 
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="/js/form-validator/jquery.form-validator.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <?php echo $content; ?>
 </body>

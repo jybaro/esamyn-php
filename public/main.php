@@ -19,7 +19,7 @@ $tree = array();
 foreach($rows as $formulario){
     $frm_id = $formulario['frm_id'];
     echo '<li>';
-    echo '<a href="/esamyn/form/' . $frm_id . '">';
+    echo '<a href="/form/' . $frm_id . '">';
     echo $formulario['frm_clave'] . '. ' . $formulario['frm_titulo'];
     echo '</a>';
 
@@ -33,7 +33,7 @@ foreach($rows as $formulario){
             echo 'Encuestas ingresadas:';
         }
         echo '<li>';
-        echo '<a href="/esamyn/form/' . $frm_id . '/' . $enc_id . '">';
+        echo '<a href="/form/' . $frm_id . '/' . $enc_id . '">';
         echo $encuesta['enc_creado'];
         echo '</a>';
 
