@@ -2,26 +2,32 @@
 
 //var_dump($conn);
 //$frm_id = (int)$_GET['id'];
-$frm_id = (isset($args[0])) ? $args[0] : -1;;
+$frm_id = (isset($args[0])) ? (int)$args[0] : -1;;
 $result = pg_query($conn, 'select * from esamyn.esa_formulario where frm_id='.$frm_id);
 
 $formulario = pg_fetch_array($result, 0);
 $respuestas = array();
+$encuesta = array();
 
 
-if (isset($_GET['enc'])) {
-    $enc_id = (int)$_GET['enc'];
-    $result = pg_query($conn, "SELECT * FROM esamyn.esa_encuesta WHERE enc_id=$enc_id");
-    $encuesta = pg_fetch_array($result, 0);
+if (isset($args[1])) {
+    $enc_id = (int)$args[1];
+    $result = q("SELECT * FROM esamyn.esa_encuesta WHERE enc_id=$enc_id");
+
+    if ($result){
+        $encuesta = $result[0];
+    }
 
     if ((int)$encuesta['enc_formulario'] !== $frm_id) {
         echo "ERROR FATAL: El formulario de la encuesta ({$encuesta[enc_formulario]}) no corresponde al formulario referenciado ($frm_id).";
         die();
     }
 
-    $result = pg_query("SELECT * FROM esamyn.esa_respuesta WHERE res_encuesta=$enc_id");
-    while ($respuesta = pg_fetch_array($result)) {
-        $respuestas[$respuesta['res_pregunta']] = $respuesta['res_valor_texto'];
+    $result = q("SELECT * FROM esamyn.esa_respuesta WHERE res_encuesta=$enc_id");
+    if ($result) {
+        foreach($result as $r){
+            $respuestas[$r['res_pregunta']] = $r;
+        }
     }
 }
 
@@ -81,7 +87,8 @@ function p_render_tree($nodo) {
     //$name = 'prg'.$prg_id;
     $name = $prg_id;
     $id = $name;
-    $value = isset($respuestas[$prg_id]) ? $respuestas[$prg_id] : '';
+    //$value = isset($respuestas[$prg_id]) ? $respuestas[$prg_id] : '';
+    $respuesta = isset($respuestas[$prg_id]) ? $respuestas[$prg_id] : null;
 
     /*
     $tipo = '';
@@ -122,6 +129,7 @@ function p_render_tree($nodo) {
     //echo "TIPO:$tipo";
     switch($tipo){
     case 'texto':
+        $value = $respuesta['res_valor_texto'];
         $validacion = (!empty($validacion) && ctype_digit($validacion)) ? 'maxlength="'.$validacion.'"' : $validacion;
         if ($tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'grupo' ) {
 
@@ -153,6 +161,7 @@ function p_render_tree($nodo) {
         }
         break;
     case 'multitexto':
+        $value = $respuesta['res_valor_texto'];
         echo '<div class="row"><div class="col-md-6">';
           echo '<label for="'.$id.'">'.$texto . ': </label>';
           echo '<textarea class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>' . $value . '</textarea>'; 
@@ -160,6 +169,8 @@ function p_render_tree($nodo) {
         echo '</div></div>';
         break;
     case 'fecha':
+        $value = $respuesta['res_valor_fecha'];
+        $value = explode(' ', $value)[0];
         echo '<div class="row"><div class="col-md-6">';
           echo '<label for="'.$id.'">'.$texto . ': </label>';
           echo '<input type="date" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
@@ -167,6 +178,8 @@ function p_render_tree($nodo) {
         echo '</div></div>';
         break;
     case 'hora':
+        $value = $respuesta['res_valor_fecha'];
+        $value = explode(' ', $value)[1];
         echo '<div class="row"><div class="col-md-6">';
           echo '<label for="'.$id.'">'.$texto . ': </label>';
           echo '<input type="time" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
@@ -174,6 +187,7 @@ function p_render_tree($nodo) {
         echo '</div></div>';
         break;
     case 'numero':
+        $value = $respuesta['res_valor_numero'];
         $validacion = (!empty($validacion) && ctype_digit($validacion)) ? 'maxlength="'.$validacion.'"' : $validacion;
         if ($tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'grupo' ) {
 
@@ -206,6 +220,7 @@ function p_render_tree($nodo) {
         }
         break;
     case 'email':
+        $value = $respuesta['res_valor_texto'];
         echo '<div class="row"><div class="col-md-6">';
           echo '<label for="'.$id.'">'.$texto . ': </label>';
           echo '<input type="email" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
@@ -242,8 +257,10 @@ function p_render_tree($nodo) {
         echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
         echo '<div style="">';
         foreach($nodo['hijos'] as $hijo){
+            $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
+            $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
             echo '<div>';
-            echo '<input type="checkbox" name="'.$hijo['prg_id']. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'" onchange="p_mostrar_ocultar_hijos(this)">';
+            echo '<input type="checkbox" name="'.$hijo['prg_id']. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'" '.$value.' onchange="p_mostrar_ocultar_hijos(this)">';
             echo ' <label for="'.$hijo['prg_id'].'">' . $hijo['prg_texto'] . '</label>';
             
             //echo '<pre>';
@@ -270,8 +287,10 @@ function p_render_tree($nodo) {
         echo '<div style="padding-left:20px;">';
         $class_radio = count($nodo['hijos']) > 3 ? 'radio' : 'radio-inline';
         foreach($nodo['hijos'] as $hijo){
+            $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
+            $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
             echo '<label class="'.$class_radio.'">';
-            echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  onchange="p_mostrar_ocultar_hijos(this)">';
+            echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  '.$value.' onchange="p_mostrar_ocultar_hijos(this)">';
             echo $hijo['prg_texto'];
             echo '</label>';
             
@@ -347,7 +366,7 @@ function p_render_tree($nodo) {
 
 
         echo $texto . ': ';
-        echo '<input type="checkbox" name="'.$name.'" id="'.$id.'" value="'.$value.'">'; 
+        //echo '<input type="checkbox" name="'.$name.'" id="'.$id.'" value="'.$value.'">'; 
         break;
     case 'cabecera1':
         echo '<div class="container">';

@@ -37,48 +37,84 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
 
                 $pregunta = $preguntas[$prg_id];
 
+                $valores_a_insertar = array();
 
-                switch($pregunta['tpp_clave']){
+                $tipo = empty($pregunta['tpp_clave']) ? 'texto' : $pregunta['tpp_clave'];
+
+                switch($tipo){
                 case 'texto':
                     $campo_valor = 'texto';
                     $valor = "'" . $valor . "'";
+                    $valores_a_insertar[$prg_id] = $valor;
                     break;
                 case 'multitexto':
                     $campo_valor = 'texto';
                     $valor = "'" . $valor . "'";
+                    $valores_a_insertar[$prg_id] = $valor;
                     break;
                 case 'numero':
                     $campo_valor = 'numero';
                     $valor = $valor;
+                    $valores_a_insertar[$prg_id] = $valor;
                     break;
                 case 'fecha':
                     $campo_valor = 'fecha';
                     $valor = "to_timestamp('".$valor."', 'YYYY-MM-DD hh24:mi:ss')";
+                    $valores_a_insertar[$prg_id] = $valor;
                     break;
                 case 'hora':
                     $campo_valor = 'fecha';
                     $valor = "to_timestamp('".$valor."', 'hh24:mi:ss')";
+                    $valores_a_insertar[$prg_id] = $valor;
                     break;
                 case 'booleano':
                     $campo_valor = 'booleano';
                     $valor = $valor;
+                    $valores_a_insertar[$prg_id] = $valor;
                     break;
                 case 'email':
                     $campo_valor = 'texto';
                     $valor = "'".$valor."'";
+                    $valores_a_insertar[$prg_id] = $valor;
+                    break;
+                case 'radio':
+                    $campo_valor = 'texto';
+                    $sql = "SELECT prg_id, prg_texto FROM esamyn.esa_pregunta WHERE prg_padre=$prg_id";
+                    echo "[RADIO:$sql]";
+                    $opciones = q($sql);
+                    if ($opciones) {
+                        foreach($opciones as $opcion){
+                            $opcion_valor = ($opcion['prg_texto'] === $valor) ? "'".$valor."'" : 'null';
+                            $valores_a_insertar[$opcion['prg_id']] = $opcion_valor;
+                            echo "[RADIO OPCION {$opcion[prg_id]}:$opcion_valor]";
+                        }
+                    } else {
+                        echo "[ERROR:$sql]";
+                    }
+
                     break;
                 default:
                     $campo_valor = '';
                     break;
                 }
-                $valor = (trim($respuesta->value) == '') ? 'null' : $valor;
 
-                if ($campo_valor != ''){
-                    $sql = "INSERT INTO esamyn.esa_respuesta(res_encuesta, res_pregunta, res_valor_$campo_valor) VALUES ($enc_id, $prg_id, $valor) RETURNING res_id";
+                foreach ($valores_a_insertar as $res_pregunta => $res_valor) {
+                    $res_valor = (trim($respuesta->value) == '') ? 'null' : $res_valor;
+
+                    $sql = "INSERT INTO esamyn.esa_respuesta(
+                        res_encuesta, 
+                        res_pregunta, 
+                        res_valor_$campo_valor
+                    ) VALUES (
+                        $enc_id, 
+                        $res_pregunta, 
+                        $res_valor
+                    ) RETURNING res_id";
+
                     $res_id = q($sql);
                     if ($res_id){
                         $res_id = $res_id[0]['res_id'];
-                        echo "[R$res_id:$valor(P$prg_id)]";
+                        echo "[R$res_id:$res_valor(P$res_pregunta)]";
                         $count++;
                     } else {
                         echo "[ERROR: $sql]";
