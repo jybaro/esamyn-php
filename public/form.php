@@ -8,6 +8,7 @@ $result = pg_query($conn, 'select * from esamyn.esa_formulario where frm_id='.$f
 $formulario = pg_fetch_array($result, 0);
 $respuestas = array();
 $encuesta = array();
+$solo_lectura = false;
 
 
 if (isset($args[1])) {
@@ -16,6 +17,7 @@ if (isset($args[1])) {
 
     if ($result){
         $encuesta = $result[0];
+        $solo_lectura = ($encuesta['enc_finalizada'] == 1 );
     }
 
     if ((int)$encuesta['enc_formulario'] !== $frm_id) {
@@ -73,11 +75,17 @@ foreach($tree as $id => $prg){
 function p_render_tree($nodo) {
     global $respuestas;
     global $tipos_pregunta;
+    global $solo_lectura;
+
+    $hay_valores = false;
 
     $texto = (isset($nodo['prg_texto'])) ? trim($nodo['prg_texto']) : '';
     $texto = str_replace("\n", "<br>", $texto);
     //$texto = "<pre>$texto</pre>";
+    
     $validacion = (isset($nodo['prg_validacion'])) ? trim($nodo['prg_validacion']) : '';
+    $validacion = ($solo_lectura ? 'disabled' : $validacion);
+
     $ayuda = (isset($nodo['prg_ayuda'])) ? trim($nodo['prg_ayuda']) : '';
     $prefijo = (isset($nodo['prg_prefijo'])) ? trim($nodo['prg_prefijo']) : '';
     $subfijo = (isset($nodo['prg_subfijo'])) ? trim($nodo['prg_subfijo']) : '';
@@ -240,7 +248,7 @@ function p_render_tree($nodo) {
             echo '<div class="form-group">';
             //var_dump($hijo);
             //echo "(".count($hijo['hijos']).")";
-            p_render_tree($hijo);
+            $hay_valores = $hay_valores || p_render_tree($hijo);
             echo '</div>';
         }
         echo '</div>';
@@ -260,16 +268,17 @@ function p_render_tree($nodo) {
             $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
             $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
             echo '<div>';
-            echo '<input type="checkbox" name="'.$hijo['prg_id']. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'" '.$value.' onchange="p_mostrar_ocultar_hijos(this)">';
+            echo '<input type="checkbox" name="'.$hijo['prg_id']. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'" '.$value.' onchange="p_mostrar_ocultar_hijos(this)" '.$validacion.'>';
             echo ' <label for="'.$hijo['prg_id'].'">' . $hijo['prg_texto'] . '</label>';
             
             //echo '<pre>';
             //var_dump($hijo);
             //echo '</pre>';
             //echo "(".count($hijo['hijos']).")";
-            $display = 'none';
+            //$display = 'none';
+            $display = $value == 'checked' ? '' : 'none';
             echo '<div id="hijos_'.$hijo['prg_id'].'" style="display:'.$display.';">';
-            p_render_tree($hijo);
+            $hay_valores = $hay_valores || p_render_tree($hijo);
             echo '</div>';
             echo '</div>';
         }
@@ -290,7 +299,7 @@ function p_render_tree($nodo) {
             $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
             $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
             echo '<label class="'.$class_radio.'">';
-            echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  '.$value.' onchange="p_mostrar_ocultar_hijos(this)">';
+            echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  '.$value.' onchange="p_mostrar_ocultar_hijos(this)" '.$validacion.'>';
             echo $hijo['prg_texto'];
             echo '</label>';
             
@@ -305,6 +314,8 @@ function p_render_tree($nodo) {
             //echo '</div>';
         }
         foreach($nodo['hijos'] as $hijo){
+            $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
+            $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
             //echo '<div>';
             //echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  onchange="p_mostrar_ocultar_hijos(this)">';
             //echo ' <label for="'.$hijo['prg_id'].'">' . $hijo['prg_texto'] . '</label>';
@@ -313,9 +324,10 @@ function p_render_tree($nodo) {
             //var_dump($hijo);
             //echo '</pre>';
             //echo "(".count($hijo['hijos']).")";
-            $display = 'none';
+            //$display = 'none';
+            $display = ($value == 'checked') ? '' : 'none';
             echo '<div id="hijos_'.$hijo['prg_id'].'" style="display:'.$display.';">';
-            p_render_tree($hijo);
+            $hay_valores = $hay_valores || p_render_tree($hijo);
             echo '</div>';
             //echo '</div>';
         }
@@ -351,7 +363,7 @@ function p_render_tree($nodo) {
             foreach($hijo['hijos'] as $nieto){
                 echo '<td>';
 
-                p_render_tree($nieto);
+                $hay_valores = $hay_valores || p_render_tree($nieto);
                 echo '</td>';
             }
             echo '</tr>';
@@ -375,7 +387,7 @@ function p_render_tree($nodo) {
             echo '<div class="form-group">';
             //var_dump($hijo);
             //echo "(".count($hijo['hijos']).")";
-            p_render_tree($hijo);
+            $hay_valores = $hay_valores || p_render_tree($hijo);
             echo '</div>';
         }
         echo '</div>';
@@ -387,7 +399,7 @@ function p_render_tree($nodo) {
             echo '<li>';
             //var_dump($hijo);
             //echo "(".count($hijo['hijos']).")";
-            p_render_tree($hijo);
+            $hay_valores = $hay_valores || p_render_tree($hijo);
             echo '</li>';
         }
         echo '</ul>';
@@ -404,7 +416,7 @@ function p_render_tree($nodo) {
             echo '<div>';
             //var_dump($hijo);
             //echo "(".count($hijo['hijos']).")";
-            p_render_tree($hijo);
+            $hay_valores = $hay_valores || p_render_tree($hijo);
             echo '</div>';
         }
         echo '</div>';
@@ -437,7 +449,7 @@ function p_render_tree($nodo) {
             echo '<div>';
             //var_dump($hijo);
             //echo "(".count($hijo['hijos']).")";
-            p_render_tree($hijo);
+            $hay_valores = $hay_valores || p_render_tree($hijo);
             echo '</div>';
         }
         echo '</div>';
@@ -451,13 +463,14 @@ function p_render_tree($nodo) {
             //echo '<li>';
             //var_dump($hijo);
             //echo "(".count($hijo['hijos']).")";
-            p_render_tree($hijo);
+            $hay_valores = $hay_valores || p_render_tree($hijo);
             //echo '</li>';
         }
         echo '</ul>';
         break;
 
     }
+    return $hay_valores;
 }
 
 
@@ -472,14 +485,19 @@ function p_render_tree($nodo) {
 <form id="formulario" onsubmit="return false;">
   <?php p_render_tree($tree['']); ?>
 <!--input type="button" value="<?php echo (isset($encuesta) ? 'Guardar cambios' : 'Registrar nueva encuesta') ; ?>" onclick="p_enviar_formulario()" /-->
-<button class="btn btn-primary" onclick="p_enviar_formulario()" />
-<?php echo (isset($encuesta) ? 'Guardar cambios' : 'Registrar nueva encuesta') ; ?>
-</button>
+    <?php if(!$solo_lectura):?>
+<div class="alert alert-success" style="display:none;" id="guardado_ok">Formulario guardado con éxito</div>
+<div class="alert alert-danger" style="display:none;" id="guardado_error">No se pudo guardar el formulario</div>
+<button class="btn btn-primary" onclick="p_enviar_formulario()" />Guardar</button>
+<button class="btn btn-primary" onclick="p_enviar_formulario('salir')" />Guardar y salir</button>
+<button class="btn btn-primary" onclick="p_finalizar()" />Finalizar</button>
+<?php endif; ?>
 </form>
 
-
 <script>
-function p_enviar_formulario() {
+function p_enviar_formulario(accion) {
+    accion = ((typeof(accion) === 'undefined') ? '' : accion);
+    var finalizada = (accion=='finalizada') ? 1: 0;
     var respuestas_json = [];
     var respuestas_json = $('#formulario').serializeArray();
     /*
@@ -510,15 +528,28 @@ function p_enviar_formulario() {
     //xmlhttp.setRequestHeader("Content-type", "application/json");
     xmlhttp.onreadystatechange = function () { //Call a function when the state changes.
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            console.log('RESPUESTA REST: ', xmlhttp.responseText);
-            //window.location.replace('/main');
+            //console.log('RESPUESTA REST: ', xmlhttp.responseText);
+            $('#guardado_error').hide('fast');
+            $('#guardado_ok').show('fast');
+            respuesta = JSON.parse(xmlhttp.responseText);
+            console.log('RESPUESTA REST: ', respuesta);
+
+            window.enc_id = respuesta['enc_id'];
+            if (accion !== '') {
+                window.location.replace('/main');
+            }
+        } else {
+            $('#guardado_ok').hide('fast');
+            $('#guardado_error').show('fast');
         }
     }
     console.log('INFO ENVIADA:', jsondata);
 
-    var enc_id = <?php echo (isset($encuesta) ? $encuesta['enc_id'] : '-1'); ?>;
-    xmlhttp.send('respuestas_json='+jsondata+'&enc_id='+enc_id);
+    xmlhttp.send('respuestas_json='+jsondata+'&enc_id='+enc_id+'&finalizada='+finalizada);
 }
+
+
+var enc_id = <?php echo ((isset($encuesta) && isset($encuesta['enc_id'])) ? $encuesta['enc_id'] : '-1'); ?>;
 
 function p_mostrar_ocultar_hijos(target){
     var id = target.id;
@@ -528,7 +559,7 @@ function p_mostrar_ocultar_hijos(target){
         hijos.style.display = '';
     } else {
         hijos.style.display = 'none';
-}
+    }
      */
     var inputs = target.parentNode.parentNode.getElementsByTagName('input');
     //console.log(target, inputs);
@@ -545,14 +576,45 @@ function p_mostrar_ocultar_hijos(target){
             } else {
             //    hijos.style.display = 'none';
                 $('#hijos_' + id).hide('fast');
+
+                $('#hijos_' + id).find(':input').each(function() {
+                    switch(this.type) {
+                    case 'password':
+                    case 'text':
+                    case 'textarea':
+                    case 'file':
+                    case 'select-one':
+                    case 'select-multiple':
+                    case 'date':
+                    case 'number':
+                    case 'tel':
+                    case 'email':
+                        $(this).val('');
+                        break;
+                    case 'checkbox':
+                    case 'radio':
+                        this.checked = false;
+                        break;
+                    }
+                });
             }
             //$('#hijos_' + id).toggle(input.checked);
         }
     }
 
 }
+
+function p_finalizar(){
+    if (confirm('Al finalizar un formulario ya no podrá editar la información.\n\nSeguro desea finalizar el formulario?')) {
+        p_enviar_formulario('finalizada');
+    } else {
+    }
+}
+
 $.validate({
     modules : 'html5,date',
     lang: 'es'
 });
+
+
 </script>

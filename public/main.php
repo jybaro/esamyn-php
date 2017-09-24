@@ -15,6 +15,7 @@ $result = pg_query($conn, 'select * from esamyn.esa_formulario ORDER BY frm_clav
 $rows = pg_fetch_all($result);
 echo '<ul>';
 $tree = array();
+$ess_id = $_SESSION['ess_id'];
 
 foreach($rows as $formulario){
     $frm_id = $formulario['frm_id'];
@@ -23,7 +24,7 @@ foreach($rows as $formulario){
     echo $formulario['frm_clave'] . '. ' . $formulario['frm_titulo'];
     echo '</a>';
 
-    $result = pg_query("SELECT * FROM esamyn.esa_encuesta WHERE enc_formulario = $frm_id");
+    $result = pg_query("SELECT * FROM esamyn.esa_encuesta WHERE enc_formulario = $frm_id AND enc_establecimiento_salud=$ess_id");
 
     $count = 0;
     while ($encuesta = pg_fetch_array($result)) {

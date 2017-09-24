@@ -97,6 +97,40 @@ if (isset($_SESSION['cedula'])){
 </nav>
 
 
+<div class="modal fade" id="vm_alerta" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Alerta</h4>
+            </div>
+            <div class="modal-body" id="vm_alerta_mensaje">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="vm_procesando" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <!--img src="img/o.gif"-->
+                <div style="width:300px;height:300px;margin:auto;padding-top:140px;background:url('img/o.gif');background-repeat:no-repeat;background-position: center center;vertical-align: middle;text-align:center;">
+                    Procesando <span id="procesando_count"></span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="/js/form-validator/jquery.form-validator.min.js"></script>

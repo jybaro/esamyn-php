@@ -158,6 +158,7 @@ function p_guardar_evaluacion($hijos, $padre = null, $padre2 = null){
             
             $count++;
             $texto = $hijo["@attributes"]["TEXT"];
+            $texto = trim($texto);
             $texto = "'$texto'";
             $tipo_grupo_parametro = 'null';
             $sql_tipo_grupo_parametro = 'null';
@@ -354,6 +355,7 @@ function p_guardar_preguntas($hijos, $padre = null) {
             
             $count++;
             $texto = $hijo["@attributes"]["TEXT"];
+            $texto = trim($texto);
             $texto = "'$texto'";
             $sql_tipo_pregunta = 'null';
             $codigo_verificacion = 'null';
