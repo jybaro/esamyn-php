@@ -123,7 +123,7 @@ if (isset($_SESSION['cedula'])){
         <div class="modal-content">
             <div class="modal-body">
                 <!--img src="img/o.gif"-->
-                <div style="width:300px;height:300px;margin:auto;padding-top:140px;background:url('img/o.gif');background-repeat:no-repeat;background-position: center center;vertical-align: middle;text-align:center;">
+                <div style="width:300px;height:300px;margin:auto;padding-top:140px;background:url('/img/o.gif');background-repeat:no-repeat;background-position: center center;vertical-align: middle;text-align:center;">
                     Procesando <span id="procesando_count"></span>
                 </div>
 

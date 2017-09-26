@@ -106,9 +106,13 @@ if (isset($_POST['formulario']) && !empty($_POST['formulario']) && isset($_FILES
         if ($frm_id === 0) {
             //evaluacion
             foreach(['parametro_pregunta', 'verificador', 'parametro', 'grupo_parametro', 'cumple_condicion_no_aplica', 'condicion_no_aplica', 'evaluacion'] as $tabla){
-                $sql = ("DELETE FROM esamyn.esa_$tabla");
+                //$sql = ("DELETE FROM esamyn.esa_$tabla RETURNING *");
+                $sql = "TRUNCATE esamyn.esa_$tabla RESTART IDENTITY CASCADE";
                 //echo "<pre>$sql</pre>";
-                q($sql);
+                $result = q($sql);
+                //if (!$result){
+                //    echo "<div class='alert alert-danger'>ERROR:<pre>$sql</pre></div>";
+               // }
             }
             
             p_guardar_evaluacion($array['node']['node']);
@@ -117,7 +121,9 @@ if (isset($_POST['formulario']) && !empty($_POST['formulario']) && isset($_FILES
         } else {
             pg_query("DELETE FROM esamyn.esa_respuesta WHERE res_encuesta in (SELECT enc_id from esamyn.esa_encuesta WHERE enc_formulario = $frm_id)");
             pg_query("DELETE FROM esamyn.esa_encuesta WHERE enc_formulario = $frm_id");
+            pg_query("DELETE FROM esamyn.esa_verificador WHERE ver_parametro IN (SELECT ppr_parametro FROM esamyn.esa_parametro_pregunta WHERE ppr_pregunta IN (SELECT prg_id FROM esamyn.esa_pregunta WHERE prg_formulario = $frm_id))");
             pg_query("DELETE FROM esamyn.esa_parametro_pregunta WHERE ppr_pregunta IN (SELECT prg_id FROM esamyn.esa_pregunta WHERE prg_formulario = $frm_id)");
+            pg_query("DELETE FROM esamyn.esa_cumple_condicion_no_aplica WHERE ccn_pregunta IN (SELECT prg_id FROM esamyn.esa_pregunta WHERE prg_formulario = $frm_id)");
             pg_query("DELETE FROM esamyn.esa_pregunta WHERE prg_formulario = $frm_id");
 
             p_guardar_preguntas($array['node']['node']);
@@ -169,6 +175,7 @@ function p_guardar_evaluacion($hijos, $padre = null, $padre2 = null){
             $codigo_like = 'null';
 
             $puntaje = 0;
+            $condicion_no_aplica = 'null';
             $par_condicion_no_aplica = 'null';
             $sql_par_condicion_no_aplica = 'null';
             $obligatorio = 0;
@@ -222,6 +229,26 @@ function p_guardar_evaluacion($hijos, $padre = null, $padre2 = null){
                                 //var_dump($nueva_condicion);
                                 $par_condicion_no_aplica = $nueva_condicion[0]['cna_id'];
                                 //echo "[nueva condicion]";
+                                //
+                                //ENLAZA LA CONDICION NO APLICA:
+                                $sql2 = ("SELECT prg_id FROM esamyn.esa_pregunta WHERE prg_codigo_no_aplica='$condicion_no_aplica'");
+                                $preguntas_enlazadas = q($sql2); 
+                                //echo "<pre>$sql2</pre>";
+
+                                //$cna_id = "(SELECT cna_id FROM esamyn.esa_condicion_no_aplica WHERE cna_texto='$condicion_no_aplica')";
+                                $cna_id = $par_condicion_no_aplica;
+
+                                foreach($preguntas_enlazadas as $pregunta_enlazada){
+                                    $prg_id = $pregunta_enlazada['prg_id'];
+                                    $sql2 = ("INSERT INTO esamyn.esa_cumple_condicion_no_aplica(ccn_pregunta, ccn_condicion_no_aplica) VALUES ($prg_id, $cna_id) RETURNING ccn_id");
+                                    $result = q($sql2);
+                                    if (!$result) {
+                                        echo "<div class='alert alert-danger'>ERROR <pre>$sql2</pre></div>";
+                                    } else {
+
+                                    } 
+                                    //echo "<pre>$sql2</pre>";
+                                }
                             } else {
                                 //var_dump($condicion);
                                 $par_condicion_no_aplica = $condicion[0]['cna_id'];
@@ -297,6 +324,8 @@ function p_guardar_evaluacion($hijos, $padre = null, $padre2 = null){
                         p_guardar_evaluacion($hijo["node"], null, $par_id);
                     }
 
+                    //VERIFICADORES:
+
                     $sql2 = ("SELECT prg_id FROM esamyn.esa_pregunta WHERE prg_codigo_verificacion like $codigo_like");
                     $preguntas_enlazadas = q($sql2); 
                     //echo "<pre>$sql2</pre>";
@@ -312,6 +341,7 @@ function p_guardar_evaluacion($hijos, $padre = null, $padre2 = null){
                         } 
                         //echo "<pre>$sql2</pre>";
                     }
+
 
                 }
             } else {
@@ -359,6 +389,7 @@ function p_guardar_preguntas($hijos, $padre = null) {
             $texto = "'$texto'";
             $sql_tipo_pregunta = 'null';
             $codigo_verificacion = 'null';
+            $codigo_no_aplica = 'null';
             $ayuda = 'null';
             $prefijo = 'null';
             $subfijo = 'null';
@@ -376,6 +407,7 @@ function p_guardar_preguntas($hijos, $padre = null) {
                 $attributes = (!isset( $hijo['attribute']["@attributes"])) ? $hijo['attribute'] : array( $hijo['attribute'] );
                 $glue = '';
                 $codigo_verificacion = '';
+                $codigo_no_aplica = '';
 
                 foreach( $attributes as  $attribute) {
                     if ($attribute["@attributes"]["NAME"] == 'prefijo'){
@@ -403,9 +435,15 @@ function p_guardar_preguntas($hijos, $padre = null) {
                         $buff = trim($attribute["@attributes"]["VALUE"]);
                         $codigo_verificacion .= $glue.$buff;
                     }
+                    if ($attribute["@attributes"]["NAME"] == 'no-aplica'){
+                        $buff = trim($attribute["@attributes"]["VALUE"]);
+                        //$codigo_no_aplica .= $glue.$buff;
+                        $codigo_no_aplica = $buff;
+                    }
                     $glue = ',';
                 }
                  $codigo_verificacion = ( $codigo_verificacion == '') ? 'null' : "'$codigo_verificacion'";
+                 $codigo_no_aplica = ( $codigo_no_aplica == '') ? 'null' : "'$codigo_no_aplica'";
             }
             $sql = "INSERT INTO esamyn.esa_pregunta(
                 prg_formulario, 
@@ -414,6 +452,7 @@ function p_guardar_preguntas($hijos, $padre = null) {
                 prg_orden, 
                 prg_tipo_pregunta, 
                 prg_codigo_verificacion,
+                prg_codigo_no_aplica,
                 prg_ayuda,
                 prg_prefijo,
                 prg_subfijo,
@@ -426,6 +465,7 @@ function p_guardar_preguntas($hijos, $padre = null) {
                 ".($count*100).", 
                 $sql_tipo_pregunta, 
                 $codigo_verificacion,
+                $codigo_no_aplica,
                 $ayuda,
                 $prefijo,
                 $subfijo,

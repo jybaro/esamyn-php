@@ -5,8 +5,12 @@ $ess_id = $_SESSION['ess_id'];
 
 //PASO 1
 //var_dump($_SESSION);
+$condiciones_no_aplica = q("SELECT * FROM esamyn.esa_condicion_no_aplica");
+foreach($condiciones_no_aplica as $c) {
+    $condiciones_no_aplica[$c['cna_id']] = $c;
+}
 
-$result = q("
+$sql = "
     SELECT 
     * 
     ,(
@@ -42,13 +46,37 @@ $result = q("
         WHERE 
         n1.gpa_id = par_grupo_parametro
     ) AS directriz
+    ,(
+        SELECT 
+        res_valor_texto
+        FROM
+        esamyn.esa_cumple_condicion_no_aplica,
+        esamyn.esa_pregunta,
+        esamyn.esa_encuesta,
+        esamyn.esa_respuesta
+        WHERE
+        ccn_pregunta = prg_id
+        AND
+        prg_id = res_pregunta
+        AND
+        res_encuesta = enc_id
+        AND 
+        prg_formulario = enc_formulario
+        AND
+        enc_establecimiento_salud = $ess_id
+        AND
+        ccn_condicion_no_aplica = par_condicion_no_aplica
+    ) AS condicion_no_aplica
     FROM 
     esamyn.esa_parametro
     WHERE
     par_padre IS NULL
-    ");
+    ";
+//echo $sql;
+$result = q($sql);
 
 $count_parametro = 0;
+$count_parametro_si_aplica = 0;
 //echo count($result);
 
 echo '<table class="table table-bordered  table-hover">';
@@ -73,16 +101,26 @@ $puntaje_total = 0;
 $puntaje_grupo = 0;
 
 foreach($result as $r){
+    $parametro = $r;
+    $par_id = $r['par_id'];
     $grupo_count++;
     $paso_count++;
     $directriz_count++;
 
-    $puntaje_base_grupo += $r['par_puntaje'];
-    $puntaje_base_total += $r['par_puntaje'];
+    $style = '';
+    if(!empty($r['par_condicion_no_aplica']) && !empty($r['condicion_no_aplica'])){
+        $style = 'color:#DDD';
+    } else {
+        //$puntaje_base_grupo += $r['par_puntaje'];
+        //$puntaje_base_total += $r['par_puntaje'];
+
+        $count_parametro_si_aplica++;
+    }
+
 
     //Cierra 
     if ($grupo != $r['grupo'] && $grupo != 'primera vez') {
-        $buff.= "<tbody>";
+        $buff.= "</tbody>";
 
         $nombre_componente = str_replace('ó', '&Oacute;', strtoupper($grupo));
         $buff.= '<tr>';
@@ -157,13 +195,13 @@ foreach($result as $r){
         $negrilla = 'strong';
     }
 
-    $buff.= '<tr>';
+    $buff.= '<tr style="'.$style.'">';
 
     $buff.= '<th>';
     $buff.= "$count_parametro. ";
     $buff.= '</th>';
     $buff.= '<td>';
-    $buff.= '<a href="#" onclick="p_abrir_preguntas('.$r['par_id'].",'{$r[par_codigo]}'".');return false;">';
+    $buff.= '<a href="#" onclick="p_abrir_preguntas('.$par_id.",'{$r[par_codigo]}'".');return false;">';
     $buff.= str_replace(' ', "<br>", $r['par_codigo']);
     $buff.= '</a>';
     $buff.= '</td>';
@@ -186,13 +224,167 @@ foreach($result as $r){
     $buff.= "<$negrilla>".$r['par_texto']."</$negrilla>";
     $buff.= '</td>';
 
+    $cumple_parametro = 'No';
+
     $buff.= '<td class="'.$class_parametro.'" style="text-align:center">';
-    $buff.= "<$negrilla>No</$negrilla>";
+    if(!empty($r['par_condicion_no_aplica']) && !empty($r['condicion_no_aplica'])){
+        $buff.= '<div>';
+        $razon = $condiciones_no_aplica[$r['par_condicion_no_aplica']]['cna_texto'];
+
+        $buff.= 'NA porque: ' . $razon;
+        $buff.= '</div>';
+    } else {
+        $respuestas = array();
+
+        $sql = "
+            SELECT 
+            *
+            ,(SELECT tpp_clave FROM esamyn.esa_tipo_pregunta WHERE tpp_id=prg_tipo_pregunta) AS tipo
+            FROM
+            esamyn.esa_parametro_pregunta,
+            esamyn.esa_pregunta,
+            esamyn.esa_encuesta,
+            esamyn.esa_respuesta
+            WHERE
+            ppr_pregunta = prg_id
+            AND
+            prg_id = res_pregunta
+            AND
+            res_encuesta = enc_id
+            AND 
+            prg_formulario = enc_formulario
+            AND
+            enc_establecimiento_salud = $ess_id
+            AND
+            ppr_parametro = $par_id
+            ";
+        $data = q($sql);
+
+        foreach($data as $d){
+            $enc_id = $d['enc_id'];
+            $prg_id = $d['prg_id'];
+            if (!isset($respuestas[$enc_id])) {
+                $respuestas[$enc_id] = array('padre'=>array(), 'hijo'=>array());
+            }
+            $respuestas[$enc_id]['padre'][$prg_id] = $d;
+        }
+
+        $sql = "
+            SELECT 
+            *
+            ,(SELECT tpp_clave FROM esamyn.esa_tipo_pregunta WHERE tpp_id=prg_tipo_pregunta) AS tipo
+            FROM
+            esamyn.esa_parametro_pregunta,
+            esamyn.esa_pregunta,
+            esamyn.esa_encuesta,
+            esamyn.esa_respuesta,
+            esamyn.esa_parametro
+            WHERE
+            ppr_pregunta = prg_id
+            AND
+            prg_id = res_pregunta
+            AND
+            res_encuesta = enc_id
+            AND 
+            prg_formulario = enc_formulario
+            AND
+            enc_establecimiento_salud = $ess_id
+            AND
+            ppr_parametro = par_id
+            AND
+            par_padre = $par_id
+            ";
+        $data = q($sql);
+
+        foreach($data as $d){
+            $enc_id = $d['enc_id'];
+            $prg_id = $d['prg_id'];
+            $respuestas[$enc_id]['hijo'][$prg_id] = $d;
+
+        }
+
+        $count_respuestas_totales = 0;
+        $count_respuestas_cumple = 0;
+        $cantidad_minima = $parametro['par_cantidad_minima'];
+        $porcentaje = $parametro['par_porcentaje'];
+
+        foreach($respuestas as $enc_id => $respuesta){
+            $cumple = false;
+            $evaluando_opciones = false;
+            $count_opciones = 0;
+            foreach($respuesta['padre'] as $padre){
+                switch($padre['tipo']){
+                case 'numero':
+                    $cumple = ((int)$padre['res_valor_numero'] >= $cantidad_minima); 
+                    break;
+                default:
+                    $evaluando_opciones = true;
+                    if (!empty($padre['res_valor_texto'])){
+                        $count_opciones++;
+                    }
+                    break;
+                }
+            }
+            if ($evaluando_opciones){
+                $cumple = ($count_opciones >= $cantidad_minima);
+            }
+            if (!empty($respuesta['hijo'])){
+                if ($cumple){
+
+                    //cumplido el padre, ahora se evalua el hijo:
+                   
+                    $cumple = false;
+                    $evaluando_opciones = false;
+                    $count_opciones = 0;
+                    foreach($respuesta['hijo'] as $hijo){
+                        switch($hijo['tipo']){
+                        case 'numero':
+                            $cumple = ((int)$hijo['res_valor_numero'] >= $cantidad_minima); 
+                            break;
+                        default:
+                            $evaluando_opciones = true;
+                            if (!empty($hijo['res_valor_texto'])){
+                                $count_opciones++;
+                            }
+                            break;
+                        }
+                    }
+                    if ($evaluando_opciones){
+                        $cumple = ($count_opciones >= $cantidad_minima);
+                    }
+                    if ($cumple){
+                        $count_respuestas_cumple++;
+                    }
+                }
+                $count_respuestas_totales++;
+            } else {
+                $count_respuestas_totales++;
+                if ($cumple){
+                    $count_respuestas_cumple++;
+                }
+            }
+        }
+
+        if (($count_respuestas_cumple * 100 / $count_respuestas_totales) >= $porcentaje) {
+            $cumple_parametro = 'SI';
+        }
+
+        $buff.= "<$negrilla>$cumple_parametro</$negrilla>";
+        $puntaje_base_grupo += $r['par_puntaje'];
+        $puntaje_base_total += $r['par_puntaje'];
+    }
     $buff.= '</td>';
 
+    $puntaje = ($cumple_parametro === 'SI') ? $r['par_puntaje'] : 0;
+
     $buff.= '<td class="'.$class_parametro.'" style="text-align:right">';
-    $buff.= "<$negrilla> 0/".$r['par_puntaje']." $asterisco</$negrilla>";
+    $buff.= "<$negrilla> $puntaje/".$r['par_puntaje']." $asterisco</$negrilla>";
     $buff.= '</td>';
+
+    $puntaje_total += $puntaje;
+    $puntaje_grupo += $puntaje;
+
+        //$count_parametro_si_aplica++;
 
     $buff.= "</tr>";
 
@@ -204,7 +396,7 @@ $buff.= '<tr>';
 
 $buff.= '<th colspan="5" style="text-align:right;">';
 $buff.= '<h3>';
-$buff.= "TOTAL ($count_parametro indicadores)";
+$buff.= "TOTAL ($count_parametro_si_aplica indicadores que sí aplican)";
 $buff.= '</h3>';
 $buff.= '</th>';
 
@@ -226,7 +418,7 @@ $buff.= '</th>';
 
 $buff.= '<th colspan="2" style="text-align:right;">';
 $buff.= '<h3>';
-$buff.= round($puntaje_total/$puntaje_base_total) . ' %';
+$buff.= round($puntaje_total * 100/$puntaje_base_total) . ' %';
 $buff.= '</h3>';
 $buff.= '</th>';
 
@@ -267,7 +459,39 @@ echo "</table>";
 </div>
 
 <script>
+
 function p_abrir_preguntas(par_id, verificador){
+    console.log(par_id);
+    $('#verificador').text(verificador);
+    $('#par_id').text('');
+    $.ajax({
+        'url': '/_rutaPregunta/' + par_id
+    }).done(function(data){
+
+        console.log(data);
+        data = eval(data);
+        console.log(data);
+        var count = 0;
+        var num_preguntas = data.length;
+        if (num_preguntas == 0) {
+            $('#par_id').text('No se encuentran datos.');
+            $('#modalPreguntas').modal('show');
+        }
+        data.forEach(function(d){
+
+            var pregunta = d;
+            $('#par_id').append('<div>' + pregunta['ruta'] + '</div>');
+            $('#modalPreguntas').modal('show');
+        });
+        //$('#par_id').text(par_id);
+        //$('#modalPreguntas').modal('show');
+    }).fail(function(){
+        $('#par_id').text('No se encuentran datos.');
+        $('#modalPreguntas').modal('show');
+    });
+
+}
+function p_abrir_preguntas_old(par_id, verificador){
     console.log(par_id);
     $('#verificador').text(verificador);
     $('#par_id').text('');

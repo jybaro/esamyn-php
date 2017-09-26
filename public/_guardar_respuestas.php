@@ -33,7 +33,7 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
             echo '-INSERT-';
             $ess_id = $_SESSION['ess_id'];
             $usu_id = $_SESSION['usu_id'];
-            $enc_id = q("INSERT INTO esamyn.esa_encuesta(
+            $sql = "INSERT INTO esamyn.esa_encuesta(
                 enc_formulario,
                 enc_usuario,
                 enc_establecimiento_salud
@@ -41,7 +41,11 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
                 $frm_id,
                 $usu_id,
                 $ess_id
-            ) RETURNING enc_id")[0]['enc_id'];
+            ) RETURNING enc_id";
+
+            echo $sql;
+
+            $enc_id = q($sql)[0]['enc_id'];
 
             $es_nuevo = true;
         } else {
@@ -171,5 +175,6 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
 }
 $contenido = ob_get_contents();
 $contenido = str_replace('"', "'", $contenido);
+$contenido = str_replace("\n", " ", $contenido);
 ob_end_clean();
 echo "{\"log\":\"$contenido\", \"enc_id\":\"$enc_id\"}";
