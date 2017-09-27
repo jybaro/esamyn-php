@@ -476,13 +476,21 @@ function p_abrir_preguntas(par_id, verificador){
         if (num_preguntas == 0) {
             $('#par_id').text('No se encuentran datos.');
             $('#modalPreguntas').modal('show');
+        } else {
+            data[0].forEach(function(d){
+                var pregunta = d;
+                $('#par_id').append('<div>' + pregunta['ruta'] + '</div>');
+                $('#modalPreguntas').modal('show');
+            });
+            if (typeof(data[1]) !== 'undefined') {
+                $('#par_id').append('<hr><h4>Verificador hijo </h4><hr>');
+                data[1].forEach(function(d){
+                    var pregunta = d;
+                    $('#par_id').append('<div>' + pregunta['ruta'] + '</div>');
+                    $('#modalPreguntas').modal('show');
+                });
+            }
         }
-        data.forEach(function(d){
-
-            var pregunta = d;
-            $('#par_id').append('<div>' + pregunta['ruta'] + '</div>');
-            $('#modalPreguntas').modal('show');
-        });
         //$('#par_id').text(par_id);
         //$('#modalPreguntas').modal('show');
     }).fail(function(){

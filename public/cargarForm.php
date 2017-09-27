@@ -208,7 +208,7 @@ function p_guardar_evaluacion($hijos, $padre = null, $padre2 = null){
                     }
                     if ($attribute["@attributes"]["NAME"] == 'codigo'){
                         $codigo = trim($attribute["@attributes"]["VALUE"]);
-                        $codigo_like = "'%$codigo%'";
+                        $codigo_like = "'%[\"$codigo\"]%'";
                         $codigo = "'$codigo'";
                     }
 
@@ -433,7 +433,7 @@ function p_guardar_preguntas($hijos, $padre = null) {
                     }
                     if ($attribute["@attributes"]["NAME"] == 'verificador'){
                         $buff = trim($attribute["@attributes"]["VALUE"]);
-                        $codigo_verificacion .= $glue.$buff;
+                        $codigo_verificacion .= $glue.'["'.$buff.'"]';
                     }
                     if ($attribute["@attributes"]["NAME"] == 'no-aplica'){
                         $buff = trim($attribute["@attributes"]["VALUE"]);

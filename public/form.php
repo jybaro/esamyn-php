@@ -301,7 +301,7 @@ function p_render_tree($nodo, $extra = '') {
             //echo '</pre>';
             //echo "(".count($hijo['hijos']).")";
             //$display = 'none';
-            $display = $value == 'checked' ? '' : 'none';
+            $display = ($value == 'checked') ? '' : 'none';
             echo '<div id="hijos_'.$hijo['prg_id'].'" style="display:'.$display.';">';
             $hay_valores = $hay_valores || p_render_tree($hijo);
             echo '</div>';
@@ -318,45 +318,77 @@ function p_render_tree($nodo, $extra = '') {
         echo $texto ;
         echo '</div>';
         echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
-        echo '<div style="padding-left:20px;">';
-        $class_radio = count($nodo['hijos']) > 3 ? 'radio' : 'radio-inline';
+        $radiocheck = true;
         foreach($nodo['hijos'] as $hijo){
-            $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
-            $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
-            echo '<label class="'.$class_radio.'">';
-            echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  '.$value.' onchange="p_mostrar_ocultar_hijos(this)" '.$validacion.'>';
-            echo $hijo['prg_texto'];
-            echo '</label>';
-            
-            //echo '<pre>';
-            //var_dump($hijo);
-            //echo '</pre>';
-            //echo "(".count($hijo['hijos']).")";
-            //$display = 'none';
-            //echo '<div id="hijos_'.$hijo['prg_id'].'" style="display:'.$display.';">';
-            //p_render_tree($hijo);
-            //echo '</div>';
-            //echo '</div>';
+            $radiocheck = ($tipos_pregunta[$hijo['prg_tipo_pregunta']] == 'check' && empty($hijo['prg_texto'])) && $radiocheck;
         }
-        foreach($nodo['hijos'] as $hijo){
-            $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
-            $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
-            //echo '<div>';
-            //echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  onchange="p_mostrar_ocultar_hijos(this)">';
-            //echo ' <label for="'.$hijo['prg_id'].'">' . $hijo['prg_texto'] . '</label>';
-            
-            //echo '<pre>';
-            //var_dump($hijo);
-            //echo '</pre>';
-            //echo "(".count($hijo['hijos']).")";
-            //$display = 'none';
-            $display = ($value == 'checked') ? '' : 'none';
-            echo '<div id="hijos_'.$hijo['prg_id'].'" style="display:'.$display.';">';
-            $hay_valores = $hay_valores || p_render_tree($hijo);
+        if ($radiocheck) {
+            echo '<div>';
+            foreach($nodo['hijos'] as $hijo){
+                echo '<div id="'.$hijo['prg_id'].'">';
+                foreach($hijo['hijos'] as $nieto){
+                    $respuesta = isset($respuestas[$nieto['prg_id']]) ? $respuestas[$nieto['prg_id']] : null;
+                    $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $nieto['prg_texto']) ? 'checked' : '';
+                    echo '<div>';
+                    echo '<input type="checkbox" name="'.$nieto['prg_id']. '" id="'.$nieto['prg_id'].'" value="'.$nieto['prg_texto'].'" '.$value.' onchange="p_radiocheck(this, '.$hijo['prg_id'].');p_mostrar_ocultar_hijos(this)" '.$validacion.'>';
+                    echo ' <label for="'.$nieto['prg_id'].'">' . $nieto['prg_texto'] . '</label>';
+
+                    //echo '<pre>';
+                    //var_dump($hijo);
+                    //echo '</pre>';
+                    //echo "(".count($hijo['hijos']).")";
+                    //$display = 'none';
+                    $display = ($value == 'checked') ? '' : 'none';
+                    echo '<div id="hijos_'.$nieto['prg_id'].'" style="display:'.$display.';">';
+                    $hay_valores = $hay_valores || p_render_tree($nieto);
+                    echo '</div>';
+                    echo '</div>';
+                }
+                echo '</div>';
+            }
             echo '</div>';
-            //echo '</div>';
+        } else {
+            //radio normal:
+            echo '<div style="padding-left:20px;">';
+            $class_radio = count($nodo['hijos']) > 3 ? 'radio' : 'radio-inline';
+            foreach($nodo['hijos'] as $hijo){
+                $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
+                $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
+                echo '<label class="'.$class_radio.'">';
+                echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  '.$value.' onchange="p_mostrar_ocultar_hijos(this)" '.$validacion.'>';
+                echo $hijo['prg_texto'];
+                echo '</label>';
+
+                //echo '<pre>';
+                //var_dump($hijo);
+                //echo '</pre>';
+                //echo "(".count($hijo['hijos']).")";
+                //$display = 'none';
+                //echo '<div id="hijos_'.$hijo['prg_id'].'" style="display:'.$display.';">';
+                //p_render_tree($hijo);
+                //echo '</div>';
+                //echo '</div>';
+            }
+            foreach($nodo['hijos'] as $hijo){
+                $respuesta = isset($respuestas[$hijo['prg_id']]) ? $respuestas[$hijo['prg_id']] : null;
+                $value = (is_array($respuesta) && $respuesta['res_valor_texto'] == $hijo['prg_texto']) ? 'checked' : '';
+                //echo '<div>';
+                //echo '<input type="radio" name="'.$name. '" id="'.$hijo['prg_id'].'" value="'.$hijo['prg_texto'].'"  onchange="p_mostrar_ocultar_hijos(this)">';
+                //echo ' <label for="'.$hijo['prg_id'].'">' . $hijo['prg_texto'] . '</label>';
+
+                //echo '<pre>';
+                //var_dump($hijo);
+                //echo '</pre>';
+                //echo "(".count($hijo['hijos']).")";
+                //$display = 'none';
+                $display = ($value == 'checked') ? '' : 'none';
+                echo '<div id="hijos_'.$hijo['prg_id'].'" style="display:'.$display.';">';
+                $hay_valores = $hay_valores || p_render_tree($hijo);
+                echo '</div>';
+                //echo '</div>';
+            }
+            echo '</div>';
         }
-        echo '</div>';
         echo '</div>';
         break;
 
@@ -689,6 +721,26 @@ function p_evaluar_maximo(id){
         $('#hijos_'+id).hide('fast');
     }
 
+}
+
+function p_radiocheck(target, id){
+    //console.log(id);
+    if (target.checked) {
+        $('#' + id).parent().children('div').each(function(){
+            //console.log('en div', this.id, (this.id != id));
+            if (this.id != id){
+                $(this).find(':input').each(function(){
+                    if (this.type == 'checkbox'){
+                        //console.log('borrando', this.id);
+                        this.checked = false;
+                        this.onchange();
+                    }
+                });
+            }
+
+        });
+
+    }
 }
 
 $.validate({
