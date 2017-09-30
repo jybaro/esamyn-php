@@ -66,14 +66,27 @@ $sql = "
         enc_establecimiento_salud = $ess_id
         AND
         ccn_condicion_no_aplica = par_condicion_no_aplica
+        LIMIT 1
     ) AS condicion_no_aplica
+    ,(
+        SELECT 
+        COUNT(*)
+        FROM 
+        esamyn.esa_parametro as par_hijos
+        WHERE
+        par_hijos.par_padre = padre.par_id
+    ) AS count_hijos
     FROM 
-    esamyn.esa_parametro
+    esamyn.esa_parametro AS padre
     WHERE
     par_padre IS NULL
+    ORDER BY par_id
     ";
 //echo $sql;
 $result = q($sql);
+if (!$result){
+    //echo "ERROR:<pre>$sql";
+}
 
 $count_parametro = 0;
 $count_parametro_si_aplica = 0;
@@ -103,18 +116,17 @@ $puntaje_grupo = 0;
 foreach($result as $r){
     $parametro = $r;
     $par_id = $r['par_id'];
-    $grupo_count++;
     $paso_count++;
     $directriz_count++;
+    $aplica = (empty($r['par_condicion_no_aplica']) || empty($r['condicion_no_aplica']));
 
     $style = '';
-    if(!empty($r['par_condicion_no_aplica']) && !empty($r['condicion_no_aplica'])){
+    if(!$aplica){
         $style = 'color:#DDD';
     } else {
         //$puntaje_base_grupo += $r['par_puntaje'];
         //$puntaje_base_total += $r['par_puntaje'];
 
-        $count_parametro_si_aplica++;
     }
 
 
@@ -224,17 +236,22 @@ foreach($result as $r){
     $buff.= "<$negrilla>".$r['par_texto']."</$negrilla>";
     $buff.= '</td>';
 
-    $cumple_parametro = 'No';
+    $cumple_parametro = true;
+    $buff_evaluacion = '';
 
     $buff.= '<td class="'.$class_parametro.'" style="text-align:center">';
-    if(!empty($r['par_condicion_no_aplica']) && !empty($r['condicion_no_aplica'])){
+    if(!$aplica){
         $buff.= '<div>';
         $razon = $condiciones_no_aplica[$r['par_condicion_no_aplica']]['cna_texto'];
 
+        $puntaje = 0;
+        $cumple_parametro = false;
         $buff.= 'NA porque: ' . $razon;
         $buff.= '</div>';
     } else {
-        $respuestas = array();
+        $count_parametro_si_aplica++;
+        $grupo_count++;
+        $encuestas = array();
 
         $sql = "
             SELECT 
@@ -258,127 +275,238 @@ foreach($result as $r){
             AND
             ppr_parametro = $par_id
             ";
+        $sql = "
+            SELECT *
+            FROM esamyn.esa_pregunta
+
+            LEFT OUTER JOIN esamyn.esa_tipo_pregunta
+            ON tpp_id = prg_tipo_pregunta
+
+            INNER JOIN esamyn.esa_parametro_pregunta
+            ON ppr_pregunta = prg_id
+
+            INNER JOIN esamyn.esa_parametro
+            ON ppr_parametro = par_id AND ppr_parametro = $par_id
+
+            LEFT OUTER JOIN esamyn.esa_encuesta
+            ON prg_formulario = enc_formulario AND enc_establecimiento_salud = $ess_id
+
+            LEFT OUTER JOIN esamyn.esa_respuesta
+            ON prg_id = res_pregunta AND res_encuesta = enc_id
+            ";
+$misql= $sql;
         $data = q($sql);
 
         foreach($data as $d){
+            $frm_id = $d['prg_formulario'];
             $enc_id = $d['enc_id'];
             $prg_id = $d['prg_id'];
-            if (!isset($respuestas[$enc_id])) {
-                $respuestas[$enc_id] = array('padre'=>array(), 'hijo'=>array());
+            $prg_padre = $d['prg_padre'];
+
+            if (!isset($encuestas[$frm_id])){
+                $encuestas[$frm_id] = array();
             }
-            $respuestas[$enc_id]['padre'][$prg_id] = $d;
+            if (!isset($encuestas[$frm_id][$enc_id])) {
+                $encuestas[$frm_id][$enc_id] = array('padre'=>array(), 'hijo'=>array());
+            }
+            if (!isset($encuestas[$frm_id][$enc_id]['padre'][$prg_padre])){
+                $encuestas[$frm_id][$enc_id]['padre'][$prg_padre] = array();
+            }
+            $encuestas[$frm_id][$enc_id]['padre'][$prg_padre][$prg_id] = $d;
+            $encuestas[$frm_id][$enc_id]['padre'][$prg_padre][$prg_id]['hijos'] = array();
         }
 
         $sql = "
-            SELECT 
-            *
-            ,(SELECT tpp_clave FROM esamyn.esa_tipo_pregunta WHERE tpp_id=prg_tipo_pregunta) AS tipo
-            FROM
-            esamyn.esa_parametro_pregunta,
-            esamyn.esa_pregunta,
-            esamyn.esa_encuesta,
-            esamyn.esa_respuesta,
-            esamyn.esa_parametro
-            WHERE
-            ppr_pregunta = prg_id
-            AND
-            prg_id = res_pregunta
-            AND
-            res_encuesta = enc_id
-            AND 
-            prg_formulario = enc_formulario
-            AND
-            enc_establecimiento_salud = $ess_id
-            AND
-            ppr_parametro = par_id
-            AND
-            par_padre = $par_id
+            SELECT *
+            FROM esamyn.esa_pregunta
+
+            LEFT OUTER JOIN esamyn.esa_tipo_pregunta
+            ON tpp_id = prg_tipo_pregunta
+
+            INNER JOIN esamyn.esa_parametro_pregunta
+            ON ppr_pregunta = prg_id
+
+            INNER JOIN esamyn.esa_parametro
+            ON ppr_parametro = par_id AND par_padre = $par_id
+
+            LEFT OUTER JOIN esamyn.esa_encuesta
+            ON prg_formulario = enc_formulario AND enc_establecimiento_salud = $ess_id
+
+            LEFT OUTER JOIN esamyn.esa_respuesta
+            ON prg_id = res_pregunta AND res_encuesta = enc_id
             ";
         $data = q($sql);
 
         foreach($data as $d){
+            $frm_id = $d['prg_formulario'];
             $enc_id = $d['enc_id'];
             $prg_id = $d['prg_id'];
-            $respuestas[$enc_id]['hijo'][$prg_id] = $d;
+            $encuestas[$frm_id][$enc_id]['hijo'][$prg_id] = $d;
+            if (
+                isset($encuestas[$frm_id][$enc_id]['padre'][$d['prg_padre']])
+            ){
+                $encuestas[$frm_id][$enc_id]['padre'][$d['prg_padre']]['hijos'][$prg_id] = & $encuestas[$frm_id][$enc_id]['hijo'][$prg_id];
+            }
 
         }
 
-        $count_respuestas_totales = 0;
-        $count_respuestas_cumple = 0;
-        $cantidad_minima = $parametro['par_cantidad_minima'];
         $porcentaje = $parametro['par_porcentaje'];
+        $umbral = $parametro['par_umbral'];
+        $operador_logico = $parametro['par_operador_logico'];
+        $buff_evaluacion .= "\n[operador_logico:$operador_logico, porcentaje:$porcentaje, cantidad_minima:$cantidad_minima, umbral:$umbral]";
+        //$buff_evaluacion .= ($count_parametro != 60) ? '' : print_r($encuestas, true);
 
-        foreach($respuestas as $enc_id => $respuesta){
-            $cumple = false;
-            $evaluando_opciones = false;
-            $count_opciones = 0;
-            foreach($respuesta['padre'] as $padre){
-                switch($padre['tipo']){
-                case 'numero':
-                    $cumple = ((int)$padre['res_valor_numero'] >= $cantidad_minima); 
-                    break;
-                default:
-                    $evaluando_opciones = true;
-                    if (!empty($padre['res_valor_texto'])){
-                        $count_opciones++;
-                    }
-                    break;
-                }
-            }
-            if ($evaluando_opciones){
-                $cumple = ($count_opciones >= $cantidad_minima);
-            }
-            if (!empty($respuesta['hijo'])){
-                if ($cumple){
+        foreach($encuestas as $frm_id => $encuestas_form){
+            $count_respuestas_totales = 0;
+            $count_respuestas_cumple = 0;
+            $buff_evaluacion .= "\n\n[FORM $frm_id]";
 
-                    //cumplido el padre, ahora se evalua el hijo:
-                   
-                    $cumple = false;
+            foreach($encuestas_form as $enc_id => $encuesta){
+
+                $buff_evaluacion .= "\n\n[ENCUESTA $frm_id.$enc_id]";
+                $valor_numero_padre = array();
+                $cumple = ($operador_logico == 1);
+                $cumple = $cumple || (count($encuesta['padre']) == 0);//en el caso que no hay padre, y es O, que evalue los hijos
+                $cantidad_minima = $parametro['par_cantidad_minima'];
+
+
+                foreach($encuesta['padre'] as $prg_padre => $padres){
                     $evaluando_opciones = false;
                     $count_opciones = 0;
-                    foreach($respuesta['hijo'] as $hijo){
-                        switch($hijo['tipo']){
+                    $buff_evaluacion .= "\n\n[PADRE $prg_padre]";
+                    foreach($padres as $prg_id => $padre){
+
+                        switch($padre['tpp_clave']){
                         case 'numero':
-                            $cumple = ((int)$hijo['res_valor_numero'] >= $cantidad_minima); 
+                            $valor_numero_padre[$prg_id] = (int)$padre['res_valor_numero'];
+                            $buff_evaluacion .= "\n[PADRE es numero: ".$valor_numero_padre[$prg_id]."]";
+
+                            if ($operador_logico == 1) {
+                                $cumple = $cumple && ($valor_numero_padre[$prg_id] >= $cantidad_minima); 
+                            } else {
+                                $cumple = $cumple || ($valor_numero_padre[$prg_id] >= $cantidad_minima); 
+                            }
                             break;
                         default:
+                            $buff_evaluacion .= "\n-[PADRE {$padre[par_id]}-$prg_id es texto ({$padre[res_valor_texto]})(".(!empty($padre['res_valor_texto'])?'no vacio':'vacio')."):{$padre[tpp_clave]}]-";
                             $evaluando_opciones = true;
-                            if (!empty($hijo['res_valor_texto'])){
+                            if (!empty($padre['res_valor_texto'])){
                                 $count_opciones++;
                             }
                             break;
                         }
                     }
                     if ($evaluando_opciones){
-                        $cumple = ($count_opciones >= $cantidad_minima);
+                        if ($operador_logico == 1) {
+                            $cumple = $cumple && ($count_opciones >= $cantidad_minima);
+                            $buff_evaluacion .= "\n[Y]";
+                        } else {
+                            $cumple = $cumple || ($count_opciones >= $cantidad_minima);
+                            $buff_evaluacion .= "\n[O]";
+                        }
+                        $buff_evaluacion .= "\n[evaluando opciones: $count_opciones >= $cantidad_minima:".(($count_opciones >= $cantidad_minima)?'si':'no').", cumple:".($cumple?'si':'no')."] ";
                     }
+                }
+                $buff_evaluacion .= "\n[PADRE cumple ".($cumple?'si':'no').", hijo ".(!empty($encuesta['hijo'])?'si':'no')." ] ";
+                if (!empty($encuesta['hijo'])){
+                    if ($cumple){
+
+                        //cumplido el padre, ahora se evalua el hijo:
+
+                        $evaluando_opciones = false;
+                        $count_opciones = 0;
+                        $primer_parametro_hijo = true;
+                        foreach($encuesta['hijo'] as $hijo){
+                            if ($primer_parametro_hijo){
+                                $operador_logico = $hijo['par_operador_logico'];
+                                $cantidad_minima = $hijo['par_cantidad_minima'];
+                                $porcentaje = $hijo['par_porcentaje'];
+                                $cumple = ($operador_logico == 1);
+
+                                $primer_parametro_hijo = false;
+                            }
+                            $buff_evaluacion .= "\n[HIJO tipo {$hijo[tpp_clave]}]";
+                            $prg_padre = $hijo['prg_padre'];
+
+                            switch($hijo['tpp_clave']){
+                            case 'numero':
+                                $valor_numero_hijo = (int)$hijo['res_valor_numero'];
+                                $buff_evaluacion .= "\n[HIJO numero $valor_numero_hijo]";
+
+                                if (isset($valor_numero_padre[$prg_padre]) && !empty($valor_numero_padre[$prg_padre])) {
+                                    $condicion_hijo = ($valor_numero_hijo * 100 / $valor_numero_padre[$prg_padre]) >= $cantidad_minima;
+                                    $buff_evaluacion .= "\n[% ($valor_numero_hijo * 100 / ".$valor_numero_padre[$prg_padre].") >= $cantidad_minima: ".($condicion_hijo?'si':'no')."]";
+                                } else {
+                                    $condicion_hijo = $valor_numero_hijo >= $cantidad_minima;
+                                }
+
+                                if ($operador_logico == 1) {
+                                    $cumple = $cumple && $condicion_hijo; 
+                                    $buff_evaluacion .= "\n[Y]";
+                                } else {
+                                    $cumple = $cumple || $condicion_hijo; 
+                                    $buff_evaluacion .= "\n[O]";
+                                }
+                                break;
+                            default:
+                                $evaluando_opciones = true;
+                                if (!empty($hijo['res_valor_texto'])){
+                                    $count_opciones++;
+                                }
+                                break;
+                            }
+                        }
+                        if ($evaluando_opciones){
+                            $buff_evaluacion .= "\n[HIJO $count_opciones >= $cantidad_minima:".($count_opciones >= $cantidad_minima?'si':'no')." ]";
+                            if ($operador_logico == 1) {
+                                $cumple = $cumple && ($count_opciones >= $cantidad_minima);
+                            } else {
+                                $cumple = $cumple || ($count_opciones >= $cantidad_minima);
+                            }
+                        }
+                        if ($cumple){
+                            $count_respuestas_cumple++;
+                        }
+                    }
+                    $count_respuestas_totales++;
+                } else {
+
+                    // debe ser analizado si debía haber un hijo, para poner falso, o si no habia parámetro hijo
+                    $buff_evaluacion.="\n[hijo count: ".$parametro['count_hijos']."]";
+                    //if ($parametro['count_hijos'] > 0){
+                    //    $cumple = false;
+                    // }
+
+                    $count_respuestas_totales++;
                     if ($cumple){
                         $count_respuestas_cumple++;
                     }
                 }
-                $count_respuestas_totales++;
+            }
+
+            if ($count_respuestas_totales >= $umbral && ($count_respuestas_cumple * 100 / $count_respuestas_totales) >= $porcentaje) {
+                $cumple_parametro = $cumple_parametro && true;
             } else {
-                $count_respuestas_totales++;
-                if ($cumple){
-                    $count_respuestas_cumple++;
-                }
+                $cumple_parametro= false;
+                break;
             }
         }
 
-        if (($count_respuestas_cumple * 100 / $count_respuestas_totales) >= $porcentaje) {
-            $cumple_parametro = 'SI';
-        }
 
-        $buff.= "<$negrilla>$cumple_parametro</$negrilla>";
+        $buff.= "<$negrilla>" . ($cumple_parametro ? 'SI' : 'NO') . "</$negrilla>";
+
+//$buff.="<pre>[$umbral, $porcentaje%, $cantidad_minima, $count_respuestas_cumple, $count_respuestas_totales]".'</pre>';
+
         $puntaje_base_grupo += $r['par_puntaje'];
         $puntaje_base_total += $r['par_puntaje'];
     }
     $buff.= '</td>';
 
-    $puntaje = ($cumple_parametro === 'SI') ? $r['par_puntaje'] : 0;
+    $puntaje = ($cumple_parametro) ? $r['par_puntaje'] : 0;
 
-    $buff.= '<td class="'.$class_parametro.'" style="text-align:right">';
+    $buff.= '<td class="'.$class_parametro.'" xxxstyle="text-align:right">';
     $buff.= "<$negrilla> $puntaje/".$r['par_puntaje']." $asterisco</$negrilla>";
+$buff .= '<pre>'.$buff_evaluacion.'</pre>';
     $buff.= '</td>';
 
     $puntaje_total += $puntaje;
@@ -438,7 +566,7 @@ echo "</table>";
 
 ?>
 
-<div id="modalPreguntas" class="modal fade" role="dialog">
+<div id="modalPreguntas" class="modal fade" role="dialog" tabindex="-1">
   <div class="modal-dialog">
 
     <!-- Modal content-->

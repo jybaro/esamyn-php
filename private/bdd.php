@@ -24,5 +24,7 @@ function q($sql, $callback = false) {
 function p_formatear_fecha($timestamp){
     setlocale(LC_ALL,"es_ES@euro","es_ES","esp");
     $fecha = strftime("%A %d de %B de %Y a las %Hh%S", strtotime($timestamp));
+    //$fecha = htmlspecialchars($fecha);
+    $fecha = utf8_encode($fecha);
     return $fecha;
 }

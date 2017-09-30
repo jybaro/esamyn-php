@@ -7,6 +7,7 @@ $error = false;
 
 if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['password']) && !empty($_POST['password'])) {
     //var_dump($_POST);
+    //die();
     $cedula = $_POST['cedula'];
     $password = $_POST['password'];
     $ess_id = $_POST['establecimiento_salud'];
@@ -59,20 +60,24 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
       <form action = "/login" method="POST" class="form-signin">
         <h2 class="form-signin-heading">Ingreso a ESAMyN</h2>
         <label for="cedula" class="sr-only">Número de cédula</label>
-        <input type="text" id="cedula" name="cedula" class="form-control" placeholder="cedula" required autofocus>
+        <input type="text" id="cedula" name="cedula" class="form-control" placeholder="Cédula" required autofocus>
         <label for="inputPassword" class="sr-only">Contraseña</label>
         <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" required>
-<label for="establecimiento_salud">Establecimiento de Salud:</label>
-<select name="establecimiento_salud" id="establecimiento_salud" class="form_control" required>
+
+<input type="hidden" id="establecimiento_salud" name="establecimiento_salud" value="">
+<input class="form-control" required type="text" id="establecimiento_salud_typeahead" data-provide="typeahead" autocomplete="off" placeholder="Establecimientos de Salud" onblur="p_validar_es()">
+<!--select name="establecimiento_salud" id="establecimiento_salud" class="form_control" required>
 <?php
 $es = q("SELECT * FROM esamyn.esa_establecimiento_salud" );
+/*
 foreach($es as $e){
     echo '<option value="'.$e['ess_id'].'">';
     echo $e['ess_nombre'];
     echo "</option>";
 }
+ */
 ?>
-</select>
+</select-->
         <div class="checkbox">
           <label>
          <input type="checkbox" value="remember-me"> Recordar en esta computadora
@@ -90,3 +95,46 @@ foreach($es as $e){
 
 
     </div> <!-- /container -->
+<script src="/js/bootstrap3-typeahead.min.js"></script>
+<script type="text/javascript">
+var escogido = {id:"",name:""};
+var es =[<?php
+$glue = '';
+foreach($es as $e){
+    echo $glue.'{id:"'.$e['ess_id'].'",name:"' . str_replace('"', "'", $e['ess_nombre']).'"}';
+    $glue = ',';
+}
+?>];
+$(document).ready(function() {
+    $('#establecimiento_salud_typeahead').typeahead({
+        source:es,
+        displayField:'name',
+        valueField:'id',
+        highlighter:function(name){
+        //console.log(item);
+                var ficha = '';
+                ficha +='<div>';
+                ficha +='<h4>'+name+'</h4>';
+                ficha +='</div>';
+                return ficha;
+
+            },
+                updater:function(item){
+                    console.log(item);
+                    $('#establecimiento_salud').val(item.id);
+                    escogido.id = item.id;
+                    escogido.name = item.name;
+
+                    return item.name;
+
+                }
+    });
+})
+
+function p_validar_es(){
+    console.log('on blur')
+    if ($('#establecimiento_salud').val() == ''){
+        $('#establecimiento_salud_typeahead').val('');
+    }
+}
+</script>
