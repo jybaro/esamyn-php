@@ -11,8 +11,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
     $cedula = $_POST['cedula'];
     $password = $_POST['password'];
     $ess_id = $_POST['establecimiento_salud'];
-    $ess_nombre = q("SELECT * from esamyn.esa_establecimiento_salud WHERE ess_id = $ess_id");
-    $ess_nombre = $ess_nombre[0]['ess_nombre'];
+    $ess_nombre = q("SELECT ess_nombre FROM esamyn.esa_establecimiento_salud WHERE ess_id = $ess_id" )[0]['ess_nombre'];
 
 
     //$usuario = q("SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_password='$password'");
@@ -29,6 +28,11 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         $_SESSION['rol'] = $rol;
         $_SESSION['ess_id'] = $ess_id;
         $_SESSION['ess_nombre'] = $ess_nombre;
+        
+        if (isset($_POST['rememberme']) && !empty($_POST['rememberme'])) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), $_COOKIE[session_name()], time() + 60*60*24*30, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+        }
 
         $destino = ($rol == 1) ? 'admin' : (($rol == 2) ? 'supervisor' : 'operador');
         header("Location: /$destino");
@@ -68,7 +72,31 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
 <input class="form-control" required type="text" id="establecimiento_salud_typeahead" data-provide="typeahead" autocomplete="off" placeholder="Establecimientos de Salud" onblur="p_validar_es()">
 <!--select name="establecimiento_salud" id="establecimiento_salud" class="form_control" required>
 <?php
-$es = q("SELECT * FROM esamyn.esa_establecimiento_salud" );
+    $es = q("
+        SELECT 
+        *
+        ,(
+            SELECT 
+            can_nombre
+            FROM
+            esamyn.esa_canton
+            WHERE
+            can_id=ess_canton
+        ) AS canton
+        ,(
+            SELECT
+            pro_nombre
+            FROM
+            esamyn.esa_canton
+            ,esamyn.esa_provincia
+            WHERE
+            can_id=ess_canton
+            AND
+            can_provincia=pro_id
+        ) AS provincia
+        FROM 
+        esamyn.esa_establecimiento_salud 
+        ");
 /*
 foreach($es as $e){
     echo '<option value="'.$e['ess_id'].'">';
@@ -80,7 +108,7 @@ foreach($es as $e){
 </select-->
         <div class="checkbox">
           <label>
-         <input type="checkbox" value="remember-me"> Recordar en esta computadora
+         <input type="checkbox" name="rememberme" value="rememberme"> Recordar en esta computadora
           </label>
         </div>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Ingresar</button>
@@ -101,7 +129,7 @@ var escogido = {id:"",name:""};
 var es =[<?php
 $glue = '';
 foreach($es as $e){
-    echo $glue.'{id:"'.$e['ess_id'].'",name:"' . str_replace('"', "'", $e['ess_nombre']).'"}';
+    echo $glue.'{id:"'.$e['ess_id'].'",name:"' . str_replace('"', "'", $e['ess_nombre'].' ('.$e['canton'].', '.$e['provincia']) . ') - '.$e['ess_unicodigo'].'"}';
     $glue = ',';
 }
 ?>];

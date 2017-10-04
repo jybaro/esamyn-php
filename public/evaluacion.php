@@ -434,8 +434,14 @@ $misql= $sql;
                                 $buff_evaluacion .= "\n[HIJO numero $valor_numero_hijo]";
 
                                 if (isset($valor_numero_padre[$prg_padre]) && !empty($valor_numero_padre[$prg_padre])) {
-                                    $condicion_hijo = ($valor_numero_hijo * 100 / $valor_numero_padre[$prg_padre]) >= $cantidad_minima;
-                                    $buff_evaluacion .= "\n[% ($valor_numero_hijo * 100 / ".$valor_numero_padre[$prg_padre].") >= $cantidad_minima: ".($condicion_hijo?'si':'no')."]";
+                                    if ($cantidad_minima > 0) {
+                                        $condicion_hijo = ($valor_numero_hijo * 100 / $valor_numero_padre[$prg_padre]) >= $cantidad_minima;
+                                        $buff_evaluacion .= "\n[% ($valor_numero_hijo * 100 / ".$valor_numero_padre[$prg_padre].") >= $cantidad_minima: ".($condicion_hijo?'si':'no')."]";
+                                    } else {
+                                        $cantidad_maxima = -1 * $cantidad_minima;
+                                        $condicion_hijo = ($valor_numero_hijo * 100 / $valor_numero_padre[$prg_padre]) <= $cantidad_maxima;
+                                        $buff_evaluacion .= "\n[% ($valor_numero_hijo * 100 / ".$valor_numero_padre[$prg_padre].") <= $cantidad_maxima: ".($condicion_hijo?'si':'no')."]";
+                                    }
                                 } else {
                                     $condicion_hijo = $valor_numero_hijo >= $cantidad_minima;
                                 }

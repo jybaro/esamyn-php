@@ -21,8 +21,9 @@ if (isset($args[1])) {
     }
 
     if ((int)$encuesta['enc_formulario'] !== $frm_id) {
-        echo "ERROR FATAL: El formulario de la encuesta ({$encuesta[enc_formulario]}) no corresponde al formulario referenciado ($frm_id).";
-        die();
+        //echo "ERROR FATAL: El formulario de la encuesta ({$encuesta[enc_formulario]}) no corresponde al formulario referenciado ($frm_id).";
+        //die();
+        header('Location:/main');
     }
 
     $result = q("SELECT * FROM esamyn.esa_respuesta WHERE res_encuesta=$enc_id");
@@ -149,6 +150,7 @@ function p_render_tree($nodo, $extra = '') {
     //echo "TIPO:$tipo";
     switch($tipo){
     case 'texto':
+    case 'multitexto':
         $value = $respuesta['res_valor_texto'];
         $validacion = (!empty($validacion) && ctype_digit($validacion)) ? 'maxlength="'.$validacion.'"' : $validacion;
         if ($tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'grupo' ) {
@@ -180,7 +182,7 @@ function p_render_tree($nodo, $extra = '') {
             echo '</div>';
         }
         break;
-    case 'multitexto':
+    case 'XXXmultitexto':
         $value = $respuesta['res_valor_texto'];
         echo '<div class="row '.$class.'"><div class="col-md-6">';
           echo '<label for="'.$id.'">'.$texto . ': </label>';
@@ -499,7 +501,7 @@ function p_render_tree($nodo, $extra = '') {
         echo '</div>';
         echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
         if ($imagen != '') {
-            echo '<img src="/img/'.$imagen.'">';
+            echo '<img src="/img/'.$imagen.'" style="max-width:100%;height:auto;">';
         }
         echo '<div style="padding:5px;">';
         foreach($nodo['hijos'] as $hijo){
@@ -529,27 +531,71 @@ function p_render_tree($nodo, $extra = '') {
     }
     return $hay_valores;
 }
-
+/*
+$txt="
+    Estimada Señora:
+    Como una iniciativa para mejorar la atención a las madres y recién nacidos, así como promover y proteger la lactancia materna, es importante conocer su experiencia en este establecimiento, por lo que le pedimos su autorización para participar a través de una encuesta. La información que Usted nos proporcione será de carácter estrictamente confidencial y anónimo.
+   ¿Desea participar? 
+   ";
+$txt = str_replace("\n", '<br>', $txt);
+q("UPDATE esamyn.esa_formulario SET frm_ayuda='$txt' WHERE frm_id=4");
+ */
+//q("UPDATE esamyn.esa_formulario SET frm_umbral_maximo=null WHERE frm_id=7");
 
 ?>
 
+<style>
+.formulario{
+    margin-left:5%;
+    margin-right:5%;
+    background-color:#FFF;
+    border-radius:15px;
+    padding:50px;
+}
 
-<h1>
-<?php echo $formulario['frm_clave']. '. '. $formulario['frm_titulo']; ?>
-</h1>
-    <?php if(isset($encuesta)): ?><i>Encuesta llenada <?php echo $encuesta['enc_creado']; ?></i><hr><?php endif; ?>
+.formulario>h1{
+    text-align:center;
+text-transform: uppercase;
+    padding-left:20%;
+    padding-right:20%;
+background-image: url(/img/msp.png), url(/img/acess.png);
+background-position: left top, right top;
+background-repeat: no-repeat;
+}
+.formulario>p{
+text-align:center;
+padding:20px 50px;
+font-size:16px;
+font-weight:bold;
+}
+body{
+    background-color:rgb(202, 232, 235)
+}
+</style>
 
-<form id="formulario" onsubmit="return false;">
-  <?php p_render_tree($tree['']); ?>
-<!--input type="button" value="<?php echo (isset($encuesta) ? 'Guardar cambios' : 'Registrar nueva encuesta') ; ?>" onclick="p_enviar_formulario()" /-->
+<div class="formulario">
+  <h1>
+    <?php echo $formulario['frm_clave']. '. '. $formulario['frm_titulo']; ?>
+  </h1>
+  <p>
+    <?php echo $formulario['frm_ayuda']; ?>
+  </p>
+  <?php if(isset($encuesta) && !empty($encuesta)): ?>
+    <i>Encuesta creada el <?php echo p_formatear_fecha($encuesta['enc_creado']); ?></i><hr>
+  <?php endif; ?>
+
+  <form id="formulario" onsubmit="return false;">
+    <?php p_render_tree($tree['']); ?>
+  <!--input type="button" value="<?php //echo (isset($encuesta) ? 'Guardar cambios' : 'Registrar nueva encuesta') ; ?>" onclick="p_enviar_formulario()" /-->
     <?php if(!$solo_lectura):?>
-<div class="alert alert-success" style="display:none;" id="guardado_ok">Formulario guardado con éxito</div>
-<div class="alert alert-danger" style="display:none;" id="guardado_error">No se pudo guardar el formulario</div>
-<button class="btn btn-primary" onclick="p_enviar_formulario()" />Guardar</button>
-<button class="btn btn-primary" onclick="p_enviar_formulario('salir')" />Guardar y salir</button>
-<button class="btn btn-primary" onclick="p_finalizar()" />Finalizar</button>
-<?php endif; ?>
-</form>
+    <div class="alert alert-success" style="display:none;" id="guardado_ok">Formulario guardado con éxito</div>
+    <div class="alert alert-danger" style="display:none;" id="guardado_error">No se pudo guardar el formulario</div>
+    <button class="btn btn-success" onclick="p_enviar_formulario()" />Guardar</button>
+    <button class="btn btn-primary" onclick="p_enviar_formulario('salir')" />Guardar y salir</button>
+    <button class="btn btn-danger" onclick="p_finalizar()" />Finalizar</button>
+    <?php endif; ?>
+  </form>
+</div>
 
 <script>
 function p_enviar_formulario(accion) {
