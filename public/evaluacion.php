@@ -512,7 +512,7 @@ $misql= $sql;
 
     $buff.= '<td class="'.$class_parametro.'" xxxstyle="text-align:right">';
     $buff.= "<$negrilla> $puntaje/".$r['par_puntaje']." $asterisco</$negrilla>";
-$buff .= '<pre>'.$buff_evaluacion.'</pre>';
+//$buff .= '<pre>'.$buff_evaluacion.'</pre>';
     $buff.= '</td>';
 
     $puntaje_total += $puntaje;

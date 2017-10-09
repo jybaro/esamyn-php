@@ -6,7 +6,7 @@ $path = $_GET['path'];
 
 $path = explode('/', $path);
 
-$component = (empty($path[0])) ? 'login' : array_shift($path);
+$component = (empty($path[0])) ? 'main' : array_shift($path);
 if ($component[0] == '_' || isset($_SESSION['cedula'])){
 } else {
     $component = 'login';

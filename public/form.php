@@ -558,6 +558,7 @@ q("UPDATE esamyn.esa_formulario SET frm_ayuda='$txt' WHERE frm_id=4");
 text-transform: uppercase;
     padding-left:20%;
     padding-right:20%;
+    padding-bottom:50px;
 background-image: url(/img/msp.png), url(/img/acess.png);
 background-position: left top, right top;
 background-repeat: no-repeat;

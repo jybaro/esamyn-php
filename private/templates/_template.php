@@ -7,6 +7,8 @@
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
+<link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
+
 <style>
 body { padding-top: 70px; }
 </style>
@@ -49,8 +51,6 @@ if (isset($_SESSION['ess_nombre'])){
             <li><a href="/form/5">5a. Formulario de Encuesta para Personal de Salud en Contacto con la Madre</a></li>
             <li><a href="/form/6">5b. Formulario de Encuesta para Personal de Salud sin contacto directo con madres</a></li>
             <li><a href="/form/7">6. Formulario de Revisión de Historias Clínicas</a></li>
-            <li role="separator" class="divider"></li>
-            <li><a href="/cargarForm">Cargar formulario</a></li>
           </ul>
         </li>
         <li><a href="/evaluacion">Evaluación <span class="sr-only">(current)</span></a></li>
@@ -67,13 +67,15 @@ if (isset($_SESSION['ess_nombre'])){
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Administración<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="/es">Establecimientos de Salud</a></li>
-            <li><a href="/cargarEs">Cargar ES</a></li>
-            <li><a href="/CondicionesEs">Condiciones</a></li>
+            <!--li><a href="/cargarEs">Cargar ES</a></li-->
+            <!--li><a href="/CondicionesEs">Condiciones</a></li-->
             <?php if ($_nivel <= 1): ?>
             <li role="separator" class="divider"></li>
             <li><a href="/usuarios">Usuarios</a></li>
             <li><a href="/preguntas">Preguntas</a></li>
             <?php endif; ?>
+            <li role="separator" class="divider"></li>
+            <li><a href="/cargarForm">Cargar formulario</a></li>
           </ul>
         </li>
         <?php endif; ?>
@@ -134,6 +136,8 @@ if (isset($_SESSION['cedula'])){
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="/js/form-validator/jquery.form-validator.min.js"></script>
+<script src="/js/moment.min.js"></script>
+<script src="/js/bootstrap-datetimepicker.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <?php echo $content; ?>
 </body>

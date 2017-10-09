@@ -397,8 +397,8 @@ function p_guardar_preguntas($hijos, $padre = null) {
             $imagen = 'null';
 
             if (isset($hijo['richcontent'])&& isset($hijo['richcontent']['html'])&& isset($hijo['richcontent']['html']['body'])&& isset($hijo['richcontent']['html']['body']['p']) ) {
-                //$ayuda = trim(str_replace("\n", '', $hijo['richcontent']['html']['body']['p']));
-                $ayuda = trim($hijo['richcontent']['html']['body']['p']);
+                $ayuda = trim(str_replace('[[', '<', str_replace("]]", '>', $hijo['richcontent']['html']['body']['p'])));
+                //$ayuda = trim($hijo['richcontent']['html']['body']['p']);
                 $ayuda = "'$ayuda'";
             }
             if (isset($hijo['attribute'])) {
