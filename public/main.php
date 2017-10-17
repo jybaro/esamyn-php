@@ -21,6 +21,8 @@ echo '<ul>';
 $tree = array();
 $ess_id = $_SESSION['ess_id'];
 
+$formularios = empty($formularios) ? array() : $formularios;
+
 foreach ($formularios as $formulario){
     $frm_id = $formulario['frm_id'];
 
@@ -123,6 +125,10 @@ foreach ($formularios as $formulario){
     //while ($encuesta = pg_fetch_array($result)) {
     $count = 0;
     $count_finalizado = 0;
+    
+    $encuestas = (empty($encuestas) ? array() : $encuestas);
+    //var_dump($encuestas);
+
     foreach($encuestas as $encuesta){
         $count++;
         $enc_id = $encuesta['enc_id'];

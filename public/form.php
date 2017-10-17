@@ -193,19 +193,78 @@ function p_render_tree($nodo, $extra = '') {
     case 'fecha':
         $value = $respuesta['res_valor_fecha'];
         $value = explode(' ', $value)[0];
+        $componente_fecha = <<<EOT
+<div class="container">
+    <div class="row">
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <div class='input-group date' id='datetimepicker2-$id'>
+                    <input type='text' class="form-control" name="$name" id="$id" value="$value" $validacion.' />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            $(function () {
+                $('#datetimepicker2-$id').datetimepicker({
+                    locale: 'es',
+                    format: 'YYYY-MM-DD'
+                });
+            });
+        </script>
+    </div>
+</div>
+EOT;
+
         echo '<div class="row '.$class.'"><div class="col-md-6">';
-          echo '<label for="'.$id.'">'.$texto . ': </label>';
-          echo '<input type="date" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
-          echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        echo '<label for="'.$id.'">'.$texto . ': </label>';
+        echo $componente_fecha;
+        echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
         echo '</div></div>';
+        /*
+        echo '<div class="row '.$class.'"><div class="col-md-6">';
+        echo '<label for="'.$id.'">'.$texto . ': </label>';
+        echo '<input type="date" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
+        echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        echo '</div></div>';
+        */
         break;
     case 'hora':
+
         $value = $respuesta['res_valor_fecha'];
         $value = explode(' ', $value)[1];
+        $componente_hora = <<<EOT
+<div class="container">
+    <div class="row">
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <div class='input-group date' id='datetimepicker2-$id'>
+                    <input type='text' class="form-control" name="$name" id="$id" value="$value" $validacion.' />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-time"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            $(function () {
+                $('#datetimepicker2-$id').datetimepicker({
+                    locale: 'es',
+                    format: 'LT'
+                });
+            });
+        </script>
+    </div>
+</div>
+EOT;
+
         echo '<div class="row '.$class.'"><div class="col-md-6">';
-          echo '<label for="'.$id.'">'.$texto . ': </label>';
-          echo '<input type="time" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" min="0" '.$validacion.'>'; 
-          echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
+        echo '<label for="'.$id.'">'.$texto . ': </label>';
+        //echo '<input type="time" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" min="0" '.$validacion.'>'; 
+        echo $componente_hora;
+        echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
         echo '</div></div>';
         break;
     case 'numero':
