@@ -802,15 +802,18 @@ function p_finalizar(){
 
         if (lleno){
             count_lleno ++;
+            $(this).removeClass('alert alert-danger');
+        } else {
+            $(this).addClass('alert alert-danger');
         }
     });
     console.log(count_total, count_lleno);
 
     if (count_total == count_lleno) {
-    if (confirm('Al finalizar un formulario ya no podrá editar la información.\n\nSeguro desea finalizar el formulario?')) {
-        p_enviar_formulario('finalizada');
-    } else {
-    }
+        if (confirm('Al finalizar un formulario ya no podrá editar la información.\n\nSeguro desea finalizar el formulario?')) {
+            p_enviar_formulario('finalizada');
+        } else {
+        }
     } else {
         alert('No ha completado todas las respuestas, no puede finalizar el formlario.');
     }
