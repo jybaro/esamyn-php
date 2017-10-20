@@ -815,7 +815,7 @@ function p_finalizar(){
         } else {
         }
     } else {
-        alert('No ha completado todas las respuestas, no puede finalizar el formlario.');
+        alert('No ha completado todas las respuestas, no puede finalizar el formulario.');
     }
 }
 
