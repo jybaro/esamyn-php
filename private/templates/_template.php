@@ -66,16 +66,16 @@ if (isset($_SESSION['ess_nombre'])){
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Administración<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="/es">Establecimientos de Salud</a></li>
+            <li><a href="/es">Cat&aacute;logos de Establecimientos de Salud</a></li>
             <!--li><a href="/cargarEs">Cargar ES</a></li-->
             <!--li><a href="/CondicionesEs">Condiciones</a></li-->
             <?php if ($_nivel <= 1): ?>
             <li role="separator" class="divider"></li>
             <li><a href="/usuarios">Usuarios</a></li>
-            <li><a href="/preguntas">Preguntas</a></li>
+            <li><a href="/preguntas">Contenidos</a></li>
             <?php endif; ?>
             <li role="separator" class="divider"></li>
-            <li><a href="/cargarForm">Cargar formulario</a></li>
+            <li><a href="/cargarForm">Cargar cat&aacute;logo de formulario</a></li>
           </ul>
         </li>
         <?php endif; ?>

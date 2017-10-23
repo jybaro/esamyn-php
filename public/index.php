@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once('../private/config.php');
+require_once('../private/utils.php');
 require_once('../private/bdd.php');
 
 $path = $_GET['path'];
