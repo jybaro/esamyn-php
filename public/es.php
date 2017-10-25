@@ -2,6 +2,11 @@
 $es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_unicodigo");
 ?>
 
+<h2>Establecimientos de Salud</h2>
+
+<a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:10px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a>
+
+<hr />
 <div id="modal" class="modal fade" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -14,6 +19,12 @@ $es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_uni
 
 <form id="formulario" class="form-horizontal">
 <input type="hidden" id="id" name="id" value="">
+  <div class="form-group">
+    <label for="unicodigo" class="col-sm-2 control-label">UNICODIGO:</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" id="unicodigo" name="unicodigo" placeholder="UNICODIGO">
+    </div>
+  </div>
   <div class="form-group">
     <label for="nombre" class="col-sm-2 control-label">Nombre:</label>
     <div class="col-sm-10">
@@ -87,11 +98,13 @@ $es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_uni
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" onclick="p_guardar()">Guardar cambios</button>
+        <button type="button" class="btn btn-danger" onclick="p_eliminar()" id="formulario_eliminar">Eliminar</button>
+        <button type="button" class="btn btn-success" onclick="p_guardar()">Guardar cambios</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
 <script src="/js/bootstrap3-typeahead.min.js"></script>
 <script>
 function p_abrir(ess_id){
@@ -101,14 +114,17 @@ function p_abrir(ess_id){
         data = eval(data);
         es = data[0];
         console.log(es);
-        $('#formulario_titulo').text(es['unicodigo']);
+        $('#formulario_titulo').text(es['unicodigo'] + ' "' + es['nombre'] + '"');
+        $('#formulario_eliminar').show();
+        $("#unicodigo").prop('disabled', true);
         for (key in es){
             $('#' + key).val(es[key]);
         }
+        $('#modal').modal('show');
     }).fail(function(){
         console.error('ERROR AL ABRIR');
+        alert('No se pudo cargar los datos. Contacte con el area de sistemas.');
     });
-    $('#modal').modal('show');
 }
 
 var cantones = <?php
@@ -162,24 +178,51 @@ function p_guardar(){
     dataset_json = [];
     dataset_json[0] = {};
     respuestas_json.forEach(function(respuesta_json){
-        var name = 'ess_' + respuesta_json['name'];
+        var name =  respuesta_json['name'];
         var value = respuesta_json['value'];
         dataset_json[0][name]=value;
 
     });
 
-    console.log(dataset_json);
+    console.log('dataset_json', dataset_json);
     $.ajax({
         url: '_guardar/establecimiento_salud',
-        type:'post',
+        type: 'POST',
         dataType: 'json',
-        data:dataset_json
+        data: JSON.stringify(dataset_json),
+        //data: dataset_json,
+        contentType: 'application/json'
     }).done(function(data){
         console.log('Guardado OK', data)
-    }).fail(function(){
-        console.error('ERROR AL GUARDAR');
-    });
+        data = eval(data);
 
+        if($("#nombre_" + data[0]['id']).length) { // 0 == false; >0 == true
+            //ya existe:
+            $('#nombre_' + data[0]['id']).text(data[0]['nombre']);
+            $('#zona_' + data[0]['id']).text(data[0]['zona']);
+            $('#modal').modal('hide');
+        } else {
+            //nuevo:
+
+        }
+    }).fail(function(xhr, err){
+        console.error('ERROR AL GUARDAR', xhr, err);
+    });
+}
+
+function p_nuevo(){
+
+    $('#formulario_titulo').text('nuevo');
+    $('#formulario').trigger('reset');
+    $('#id').val('');
+    $('#modal').modal('show');
+    $('#formulario_eliminar').hide();
+    $('#unicodigo').prop('disabled', false);
+}
+
+function p_eliminar(unicodigo, nombre){
+    if (confirm('Seguro desea eliminar el Establecimiento de Salud ' + unicodigo + ' "' + nombre + '"')) {
+    }
 }
 </script>
 <table class="table table-striped">
@@ -189,12 +232,15 @@ function p_guardar(){
 <th>Nombre</th>
 <th>Zona</th>
 </tr>
+<tbody id="nuevos"></tbody>
+<tbody id="antiguos">
 <?php foreach($es_listado as $i=>$es): ?>
 <tr>
 <th><?php echo ($i+1).'.&nbsp;'; ?></th>
 <td><a href="#" onclick="p_abrir('<?=$es['ess_id']?>');return false;"><?php echo $es['ess_unicodigo']; ?></a></td>
-<td><?php echo $es['ess_nombre']; ?></td>
-<td><?php echo $es['ess_zona']; ?></td>
+<td><span id="nombre_<?=$es['ess_id']?>"><?php echo $es['ess_nombre']; ?></span></td>
+<td><span id="zona_<?=$es['ess_id']?>"><?php echo $es['ess_zona']; ?></span></td>
 </tr>
 <?php endforeach; ?>
+</tbody>
 </table>

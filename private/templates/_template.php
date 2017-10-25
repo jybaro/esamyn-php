@@ -42,7 +42,7 @@ if (isset($_SESSION['ess_nombre'])){
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Formularios<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="/main">Listar</a></li>
+            <li><a href="/main">Mostrar estado del llenado</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="/form/1">1. Formulario de Información del Establecimiento</a></li>
             <li><a href="/form/2">2. Formulario de Observación</a></li>
@@ -53,7 +53,13 @@ if (isset($_SESSION['ess_nombre'])){
             <li><a href="/form/7">6. Formulario de Revisión de Historias Clínicas</a></li>
           </ul>
         </li>
-        <li><a href="/evaluacion">Evaluación <span class="sr-only">(current)</span></a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reportes<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/evaluacion">Reporte de certificaci&oacute;n</a></li>
+            <li role="separator" class="divider"></li>
+          </ul>
+        </li>
       </ul>
       <!--form class="navbar-form navbar-left">
         <div class="form-group">
@@ -66,16 +72,16 @@ if (isset($_SESSION['ess_nombre'])){
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Administración<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="/es">Cat&aacute;logos de Establecimientos de Salud</a></li>
             <!--li><a href="/cargarEs">Cargar ES</a></li-->
             <!--li><a href="/CondicionesEs">Condiciones</a></li-->
+            <li><a href="/usuarios">Usuarios</a></li>
+            <li><a href="/es">Cat&aacute;logos de Establecimientos de Salud</a></li>
             <?php if ($_nivel <= 1): ?>
             <li role="separator" class="divider"></li>
-            <li><a href="/usuarios">Usuarios</a></li>
             <li><a href="/preguntas">Contenidos</a></li>
+            <li><a href="/cargarForm">Cargar cat&aacute;logo de formulario</a></li>
             <?php endif; ?>
             <li role="separator" class="divider"></li>
-            <li><a href="/cargarForm">Cargar cat&aacute;logo de formulario</a></li>
           </ul>
         </li>
         <?php endif; ?>

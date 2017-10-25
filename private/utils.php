@@ -2,26 +2,47 @@
 
 function array_to_xml( $data, &$xml_data = null) {
     $primero = false;
-    if (empty($xml_data)) {
+    //if (empty($xml_data)) {
+    if (!isset($xml_data)) {
         $primero = true;
         $xml_data = new SimpleXMLElement('<p></p>');
-        echo '<pre>';
-        var_dump($data);
-        echo '</pre>';
+        //echo '<pre>pre:';
+        //var_dump($data);
+        //echo '</pre>';
     }
+
     foreach( $data as $key => $value ) {
         if( is_numeric($key) ){
-            $key = 'item'.$key; //dealing with <0/>..<n/> issues
+            //$key = 'item'.$key; //dealing with <0/>..<n/> issues
+            $key = "ul";
+        } else if ($key == 'font'){
+            $key = "ul";
         }
+
         if( is_array($value) ) {
             $subnode = $xml_data->addChild($key);
             array_to_xml($value, $subnode);
         } else {
-            $xml_data->addChild("$key",htmlspecialchars("$value"));
+            $xml_data->addChild($key,trim(htmlspecialchars($value)));
         }
     }
     if ($primero) {
-        return $xml_data->asXML();
+        //$asxml = trim(str_replace("\n", '<br>', trim(trim($xml_data->asXML()), "\n")), '<br>');
+        $asxml = str_replace("\n", '<br />', trim(strip_tags($xml_data->asXML()))) ;
+        /*
+        echo '<div class="alert alert-success">';
+        echo '<pre>';
+        var_dump($xml_data);
+        echo '</pre>';
+        echo '<pre>';
+        var_dump($xml_data->asXML());
+        echo '</pre>';
+        echo '<pre>';
+        var_dump($asxml);
+        echo '</pre>';
+        echo '</div>';
+         */
+        return $asxml;
     }
 }
 

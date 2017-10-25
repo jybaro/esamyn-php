@@ -399,14 +399,14 @@
 <node CREATED="1501633179543" ID="ID_492242712" MODIFIED="1505231421298" TEXT="No"/>
 <node CREATED="1501633369042" ID="ID_1036445066" MODIFIED="1508524547361" TEXT="No sabe, no contesta, no aplica"/>
 </node>
-<node CREATED="1501633660545" ID="ID_618553464" MODIFIED="1508526918284" TEXT="13. &#xbf;Decidi&#xf3; estar acompa&#xf1;ada por una persona de su elecci&#xf3;n durante el trabajo de parto? ">
+<node CREATED="1501633660545" ID="ID_618553464" MODIFIED="1508836415903" TEXT="13. &#xbf;Decidi&#xf3; estar acompa&#xf1;ada por una persona de su elecci&#xf3;n durante el trabajo de parto? ">
 <richcontent TYPE="NOTE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      (No aplica en parto expulsivo)
+      (No aplica en parto expulsivo)[[br]]
     </p>
     <p>
       (El acompa&#241;amiento puede ser de la pareja, familiar, partera/o, u otro.)

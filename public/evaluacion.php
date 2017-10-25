@@ -297,6 +297,7 @@ foreach($result as $r){
 $misql= $sql;
         $data = q($sql);
 
+        if ($data) {
         foreach($data as $d){
             $frm_id = $d['prg_formulario'];
             $enc_id = $d['enc_id'];
@@ -314,6 +315,7 @@ $misql= $sql;
             }
             $encuestas[$frm_id][$enc_id]['padre'][$prg_padre][$prg_id] = $d;
             $encuestas[$frm_id][$enc_id]['padre'][$prg_padre][$prg_id]['hijos'] = array();
+        }
         }
 
         $sql = "
@@ -337,17 +339,19 @@ $misql= $sql;
             ";
         $data = q($sql);
 
-        foreach($data as $d){
-            $frm_id = $d['prg_formulario'];
-            $enc_id = $d['enc_id'];
-            $prg_id = $d['prg_id'];
-            $encuestas[$frm_id][$enc_id]['hijo'][$prg_id] = $d;
-            if (
-                isset($encuestas[$frm_id][$enc_id]['padre'][$d['prg_padre']])
-            ){
-                $encuestas[$frm_id][$enc_id]['padre'][$d['prg_padre']]['hijos'][$prg_id] = & $encuestas[$frm_id][$enc_id]['hijo'][$prg_id];
-            }
+        if ($data) {
+            foreach($data as $d){
+                $frm_id = $d['prg_formulario'];
+                $enc_id = $d['enc_id'];
+                $prg_id = $d['prg_id'];
+                $encuestas[$frm_id][$enc_id]['hijo'][$prg_id] = $d;
+                if (
+                    isset($encuestas[$frm_id][$enc_id]['padre'][$d['prg_padre']])
+                ){
+                    $encuestas[$frm_id][$enc_id]['padre'][$d['prg_padre']]['hijos'][$prg_id] = & $encuestas[$frm_id][$enc_id]['hijo'][$prg_id];
+                }
 
+            }
         }
 
         $porcentaje = $parametro['par_porcentaje'];
@@ -370,41 +374,43 @@ $misql= $sql;
                 $cantidad_minima = $parametro['par_cantidad_minima'];
 
 
-                foreach($encuesta['padre'] as $prg_padre => $padres){
-                    $evaluando_opciones = false;
-                    $count_opciones = 0;
-                    $buff_evaluacion .= "\n\n[PADRE $prg_padre]";
-                    foreach($padres as $prg_id => $padre){
+                if (is_array($encuesta['padre'])) {
+                    foreach($encuesta['padre'] as $prg_padre => $padres){
+                        $evaluando_opciones = false;
+                        $count_opciones = 0;
+                        $buff_evaluacion .= "\n\n[PADRE $prg_padre]";
+                        foreach($padres as $prg_id => $padre){
 
-                        switch($padre['tpp_clave']){
-                        case 'numero':
-                            $valor_numero_padre[$prg_id] = (int)$padre['res_valor_numero'];
-                            $buff_evaluacion .= "\n[PADRE es numero: ".$valor_numero_padre[$prg_id]."]";
+                            switch($padre['tpp_clave']){
+                            case 'numero':
+                                $valor_numero_padre[$prg_id] = (int)$padre['res_valor_numero'];
+                                $buff_evaluacion .= "\n[PADRE es numero: ".$valor_numero_padre[$prg_id]."]";
 
+                                if ($operador_logico == 1) {
+                                    $cumple = $cumple && ($valor_numero_padre[$prg_id] >= $cantidad_minima); 
+                                } else {
+                                    $cumple = $cumple || ($valor_numero_padre[$prg_id] >= $cantidad_minima); 
+                                }
+                                break;
+                            default:
+                                $buff_evaluacion .= "\n-[PADRE {$padre[par_id]}-$prg_id es texto ({$padre[res_valor_texto]})(".(!empty($padre['res_valor_texto'])?'no vacio':'vacio')."):{$padre[tpp_clave]}]-";
+                                $evaluando_opciones = true;
+                                if (!empty($padre['res_valor_texto'])){
+                                    $count_opciones++;
+                                }
+                                break;
+                            }
+                        }
+                        if ($evaluando_opciones){
                             if ($operador_logico == 1) {
-                                $cumple = $cumple && ($valor_numero_padre[$prg_id] >= $cantidad_minima); 
+                                $cumple = $cumple && ($count_opciones >= $cantidad_minima);
+                                $buff_evaluacion .= "\n[Y]";
                             } else {
-                                $cumple = $cumple || ($valor_numero_padre[$prg_id] >= $cantidad_minima); 
+                                $cumple = $cumple || ($count_opciones >= $cantidad_minima);
+                                $buff_evaluacion .= "\n[O]";
                             }
-                            break;
-                        default:
-                            $buff_evaluacion .= "\n-[PADRE {$padre[par_id]}-$prg_id es texto ({$padre[res_valor_texto]})(".(!empty($padre['res_valor_texto'])?'no vacio':'vacio')."):{$padre[tpp_clave]}]-";
-                            $evaluando_opciones = true;
-                            if (!empty($padre['res_valor_texto'])){
-                                $count_opciones++;
-                            }
-                            break;
+                            $buff_evaluacion .= "\n[evaluando opciones: $count_opciones >= $cantidad_minima:".(($count_opciones >= $cantidad_minima)?'si':'no').", cumple:".($cumple?'si':'no')."] ";
                         }
-                    }
-                    if ($evaluando_opciones){
-                        if ($operador_logico == 1) {
-                            $cumple = $cumple && ($count_opciones >= $cantidad_minima);
-                            $buff_evaluacion .= "\n[Y]";
-                        } else {
-                            $cumple = $cumple || ($count_opciones >= $cantidad_minima);
-                            $buff_evaluacion .= "\n[O]";
-                        }
-                        $buff_evaluacion .= "\n[evaluando opciones: $count_opciones >= $cantidad_minima:".(($count_opciones >= $cantidad_minima)?'si':'no').", cumple:".($cumple?'si':'no')."] ";
                     }
                 }
                 $buff_evaluacion .= "\n[PADRE cumple ".($cumple?'si':'no').", hijo ".(!empty($encuesta['hijo'])?'si':'no')." ] ";

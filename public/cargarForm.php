@@ -400,8 +400,8 @@ function p_guardar_preguntas($hijos, $padre = null) {
             if (isset($hijo['richcontent']) && isset($hijo['richcontent']['html']) && isset($hijo['richcontent']['html']['body']) ) {
                 //echo "XXX";
                 $ayuda = array_to_xml($hijo['richcontent']['html']['body']);
-                echo $ayuda;
-                //$ayuda = trim(str_replace('[[', '<', str_replace("]]", '>', $hijo['richcontent']['html']['body']['p'])));
+                //echo $ayuda;
+                $ayuda = trim(str_replace('[[', '<', str_replace("]]", '>', $ayuda)));
                 //$ayuda = trim($hijo['richcontent']['html']['body']['p']);
                 $ayuda = "'$ayuda'";
             }
