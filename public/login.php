@@ -11,7 +11,13 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
     $cedula = $_POST['cedula'];
     $password = $_POST['password'];
     $ess_id = $_POST['establecimiento_salud'];
-    $ess_nombre = q("SELECT ess_nombre FROM esamyn.esa_establecimiento_salud WHERE ess_id = $ess_id" )[0]['ess_nombre'];
+    $ess = q("SELECT * FROM esamyn.esa_establecimiento_salud WHERE ess_id = $ess_id" );
+
+    if ($ess) {
+        $ess = $ess[0];
+        $ess_nombre = $ess['ess_nombre'];
+        //$ess_unicodigo = $ess[0]['ess_unicodigo'];
+    }
 
 
     //$usuario = q("SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_password='$password'");
@@ -28,6 +34,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         $_SESSION['rol'] = $rol;
         $_SESSION['ess_id'] = $ess_id;
         $_SESSION['ess_nombre'] = $ess_nombre;
+        $_SESSION['ess'] = $ess;
         
         if (isset($_POST['rememberme']) && !empty($_POST['rememberme'])) {
             $params = session_get_cookie_params();

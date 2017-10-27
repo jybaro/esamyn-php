@@ -1,6 +1,15 @@
+<h1>Formulario de Evaluación</h1>
+<a href="#" download><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Descargar HTML</a>
+|
+<a href="#" onclick="p_imprimir();return false;"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Generar PDF</a>
+|
+<a href="#" onclick="p_xlsx();return false;"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Exportar datos</a>
+<div id="formulario_evaluacion">
 <?php
 
 $ess_id = $_SESSION['ess_id'];
+$unicodigo = $_SESSION['ess']['ess_unicodigo'];
+
 //echo $ess_id;
 
 //PASO 1
@@ -92,7 +101,7 @@ $count_parametro = 0;
 $count_parametro_si_aplica = 0;
 //echo count($result);
 
-echo '<table class="table table-bordered  table-hover">';
+echo '<table id="tabla_formulario_evaluacion" class="table table-bordered  table-hover">';
 
 $grupo = 'primera vez';
 $paso = 'primera vez';
@@ -576,7 +585,7 @@ echo "</table>";
 
 
 
-?>
+?></div>
 
 <div id="modalPreguntas" class="modal fade" role="dialog" tabindex="-1">
   <div class="modal-dialog">
@@ -597,6 +606,16 @@ echo "</table>";
 
   </div>
 </div>
+
+
+<script src="/js/Blob.min.js"></script>
+<script src="/js/xlsx.full.min.js"></script>
+<script src="/js/FileSaver.min.js"></script>
+<script src="/js/tableexport.min.js"></script>
+
+<script src="/js/jspdf.min.js"></script>
+<script src="/js/html2canvas.min.js"></script>
+<script src="/js/html2pdf.js"></script>
 
 <script>
 
@@ -711,5 +730,20 @@ function p_alternar_grupo(id){
             icono.html('&#8853;');
         }; 
     });
+}
+
+function p_imprimir(){
+    var element = document.getElementById('formulario_evaluacion');
+    html2pdf(element, {
+        margin:       1,
+        filename:     'formulario_evaluacion_<?=$unicodigo?>.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { dpi: 192, letterRendering: true },
+        jsPDF:        { unit: 'cm', format: 'A4', orientation: 'portrait' }
+    });
+}
+
+function p_xlsx(){
+    $('#tabla_formulario_evaluacion').tableExport();
 }
 </script>

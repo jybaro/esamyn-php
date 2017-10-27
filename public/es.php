@@ -120,6 +120,10 @@ function p_abrir(ess_id){
         for (key in es){
             $('#' + key).val(es[key]);
         }
+        $('#canton_typeahead').val(cantones.reduce(function(valorAnterior, valorActual, indice, vector){
+            return (valorActual.id == es.canton ? valorActual.name : valorAnterior);
+        }, ''));
+        
         $('#modal').modal('show');
     }).fail(function(){
         console.error('ERROR AL ABRIR');
@@ -127,8 +131,9 @@ function p_abrir(ess_id){
     });
 }
 
+var escogido = {id:"",name:""};
 var cantones = <?php
-$result = q("SELECT * FROM esamyn.esa_provincia, esamyn.esa_canton WHERE pro_id = can_provincia");
+$result = q("SELECT * FROM esamyn.esa_provincia, esamyn.esa_canton WHERE pro_id = can_provincia ORDER BY can_nombre");
 $cantones = array();
 foreach($result as $r){
     $cantones[] = array(
@@ -173,6 +178,7 @@ function p_validar_canton(){
 }
 
 function p_guardar(){
+    if ($('#nombre').val() !== '' && $('#unicodigo').val() !== '' && $('#canton').val() !== '') {
     var respuestas_json = $('#formulario').serializeArray();
     console.log(respuestas_json);
     dataset_json = [];
@@ -200,14 +206,20 @@ function p_guardar(){
             //ya existe:
             $('#nombre_' + data[0]['id']).text(data[0]['nombre']);
             $('#zona_' + data[0]['id']).text(data[0]['zona']);
-            $('#modal').modal('hide');
         } else {
             //nuevo:
-
+            console.log('nuevo ES');
+            var numero = $('#antiguos').children().length + 1;
+            $('#antiguos').append('<tr><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['unicodigo']+'</a></td><td><span id="nombre_'+data[0]['id']+'">'+data[0]['nombre']+'</span></td><td><span id="zona_'+data[0]['id']+'">'+data[0]['zona']+'</span></td></tr>');
         }
+        $('#modal').modal('hide');
     }).fail(function(xhr, err){
         console.error('ERROR AL GUARDAR', xhr, err);
+        $('#modal').modal('hide');
     });
+    } else {
+        alert ('Ingrese el UNICÓDIGO, nombre y el cantón');
+    }
 }
 
 function p_nuevo(){
@@ -215,13 +227,33 @@ function p_nuevo(){
     $('#formulario_titulo').text('nuevo');
     $('#formulario').trigger('reset');
     $('#id').val('');
+    $('#canton').val('');
     $('#modal').modal('show');
     $('#formulario_eliminar').hide();
+ 
     $('#unicodigo').prop('disabled', false);
+
 }
 
 function p_eliminar(unicodigo, nombre){
-    if (confirm('Seguro desea eliminar el Establecimiento de Salud ' + unicodigo + ' "' + nombre + '"')) {
+    if (confirm('Seguro desea eliminar el Establecimiento de Salud ' + $('#unicodigo').val() + ' "' + $('#nombre').val() + '"')) {
+        var dataset_json = [{id:$('#id').val()}];
+        $.ajax({
+            url: '_borrar/establecimiento_salud',
+            type: 'POST',
+            dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //data: dataset_json,
+            contentType: 'application/json'
+        }).done(function(data){
+            console.log('Borrado OK', data)
+                data = eval(data);
+
+            $('#nombre_' + data[0]['id']).parent().parent().remove();
+        }).fail(function(xhr, err){
+            console.error('ERROR AL BORRAR', xhr, err);
+        });
+        $('#modal').modal('hide');
     }
 }
 </script>
@@ -237,7 +269,7 @@ function p_eliminar(unicodigo, nombre){
 <?php foreach($es_listado as $i=>$es): ?>
 <tr>
 <th><?php echo ($i+1).'.&nbsp;'; ?></th>
-<td><a href="#" onclick="p_abrir('<?=$es['ess_id']?>');return false;"><?php echo $es['ess_unicodigo']; ?></a></td>
+<td><a href="#" onclick="p_abrir('<?=$es['ess_id']?>');return false;"><?php echo (empty($es['ess_unicodigo']) ? '[[sin unicodigo]]' : $es['ess_unicodigo']) ; ?></a></td>
 <td><span id="nombre_<?=$es['ess_id']?>"><?php echo $es['ess_nombre']; ?></span></td>
 <td><span id="zona_<?=$es['ess_id']?>"><?php echo $es['ess_zona']; ?></span></td>
 </tr>
