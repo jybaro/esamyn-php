@@ -9,6 +9,7 @@
 
 $ess_id = $_SESSION['ess_id'];
 $unicodigo = $_SESSION['ess']['ess_unicodigo'];
+$eva_id = $_SESSION['evaluacion']['eva_id'];
 
 //echo $ess_id;
 
@@ -73,6 +74,8 @@ $sql = "
         prg_formulario = enc_formulario
         AND
         enc_establecimiento_salud = $ess_id
+        AND
+        enc_evaluacion = $eva_id
         AND
         ccn_condicion_no_aplica = par_condicion_no_aplica
         LIMIT 1
@@ -298,7 +301,7 @@ foreach($result as $r){
             ON ppr_parametro = par_id AND ppr_parametro = $par_id
 
             LEFT OUTER JOIN esamyn.esa_encuesta
-            ON prg_formulario = enc_formulario AND enc_establecimiento_salud = $ess_id
+            ON prg_formulario = enc_formulario AND enc_establecimiento_salud = $ess_id AND enc_evaluacion = $eva_id
 
             LEFT OUTER JOIN esamyn.esa_respuesta
             ON prg_id = res_pregunta AND res_encuesta = enc_id
@@ -341,7 +344,7 @@ $misql= $sql;
             ON ppr_parametro = par_id AND par_padre = $par_id
 
             LEFT OUTER JOIN esamyn.esa_encuesta
-            ON prg_formulario = enc_formulario AND enc_establecimiento_salud = $ess_id
+            ON prg_formulario = enc_formulario AND enc_establecimiento_salud = $ess_id AND enc_evaluacion = $eva_id
 
             LEFT OUTER JOIN esamyn.esa_respuesta
             ON prg_id = res_pregunta AND res_encuesta = enc_id
