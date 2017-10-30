@@ -1,8 +1,11 @@
 <?php
 
 function p_render($nodo) {
+    global $zebra;
+    $zebra = !$zebra;
+
     if ($nodo['tipo'] !== 'null') {
-        echo '<ul style="border:solid 3px #EEE;border-radius:10px;padding:5px;margin:5px;">';
+        echo '<ul style="border:solid 3px #DDD;border-radius:10px;padding:5px;margin:5px;background-color:'.($zebra ? '#EEE': '#FFF').';">';
         if (!empty($nodo['prg_texto'])) {
             echo "<form id='formulario_$nodo[prg_id]' class='form-inline' onsubmit='return false;'>";
             echo '<div class="row"><div class="col-md-6">';
@@ -33,6 +36,7 @@ $formularios = q("SELECT *  FROM esamyn.esa_formulario ORDER BY frm_clave");
 <h2><?php echo $frm['frm_clave'] . '. ' . $frm['frm_nombre']; ?></h2>
 <div>
 <?php
+$zebra = false;
 
 $preguntas = q("SELECT * , (SELECT tpp_clave FROM esamyn.esa_tipo_pregunta WHERE prg_tipo_pregunta = tpp_id) AS tipo FROM esamyn.esa_pregunta WHERE prg_formulario = $frm[frm_id]   ORDER BY prg_orden");
 

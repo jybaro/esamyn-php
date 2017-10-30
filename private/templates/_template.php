@@ -78,6 +78,7 @@ if (isset($_SESSION['ess_nombre'])){
             <!--li><a href="/CondicionesEs">Condiciones</a></li-->
             <li><a href="/usuarios">Usuarios</a></li>
             <li><a href="/es">Cat&aacute;logos de Establecimientos de Salud</a></li>
+            <li><a href="/espaciosEvaluacion">Espacios de evaluaci&oacute;n</a></li>
             <?php if ($_nivel <= 1): ?>
             <li role="separator" class="divider"></li>
             <li><a href="/preguntas">Contenidos</a></li>

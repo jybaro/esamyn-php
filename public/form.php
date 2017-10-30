@@ -2,6 +2,7 @@
 
 //var_dump($conn);
 //$frm_id = (int)$_GET['id'];
+$unicodigo = $_SESSION['ess']['ess_unicodigo'];
 $frm_id = (isset($args[0])) ? (int)$args[0] : -1;;
 $result = pg_query($conn, 'select * from esamyn.esa_formulario where frm_id='.$frm_id);
 
@@ -644,6 +645,9 @@ body{
     <i>Encuesta creada el <?php echo p_formatear_fecha($encuesta['enc_creado']); ?></i><hr>
   <?php endif; ?>
 
+  <div style="text-align:center;margin-bottom:10px;">
+    <a href="#" onclick="p_imprimir();return false;"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Generar PDF</a>
+  </div>
   <form id="formulario" onsubmit="return false;">
     <?php p_render_tree($tree['']); ?>
   <!--input type="button" value="<?php //echo (isset($encuesta) ? 'Guardar cambios' : 'Registrar nueva encuesta') ; ?>" onclick="p_enviar_formulario()" /-->
@@ -656,6 +660,16 @@ body{
     <?php endif; ?>
   </form>
 </div>
+
+
+<script src="/js/Blob.min.js"></script>
+<script src="/js/xlsx.full.min.js"></script>
+<script src="/js/FileSaver.min.js"></script>
+<script src="/js/tableexport.min.js"></script>
+
+<script src="/js/jspdf.min.js"></script>
+<script src="/js/html2canvas.min.js"></script>
+<script src="/js/html2pdf.js"></script>
 
 <script>
 function p_enviar_formulario(accion) {
@@ -857,5 +871,16 @@ $.validate({
     lang: 'es'
 });
 
+
+function p_imprimir(){
+    var element = document.getElementById('formulario');
+    html2pdf(element, {
+        margin:       1,
+        filename:     'formulario-<?=$formulario['frm_clave']?>-<?=$unicodigo?>.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { dpi: 192, letterRendering: true },
+        jsPDF:        { unit: 'cm', format: 'A4', orientation: 'portrait' }
+    });
+}
 
 </script>

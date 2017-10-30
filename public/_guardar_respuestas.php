@@ -1,5 +1,5 @@
 <?php
-
+$eva_id = $_SESSION['evaluacion']['eva_id']; 
 
 //echo 'desde ws rest: ';
 //var_dump($_POST);
@@ -36,10 +36,12 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
             $sql = "INSERT INTO esamyn.esa_encuesta(
                 enc_formulario,
                 enc_usuario,
+                enc_evaluacion,
                 enc_establecimiento_salud
             ) VALUES (
                 $frm_id,
                 $usu_id,
+                $eva_id,
                 $ess_id
             ) RETURNING enc_id";
 
