@@ -1,4 +1,5 @@
 <?php
+require_once('main.php');
 ?>
-<h1> Supervisor</h1>
+<!--h1> Supervisor</h1-->
 

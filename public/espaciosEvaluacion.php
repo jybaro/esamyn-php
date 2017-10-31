@@ -150,7 +150,7 @@ function p_guardar(){
                 //nuevo:
                 console.log('nuevo ESPACIO');
                 var numero = $('#antiguos').children().length + 1;
-                $('#antiguos').append('<tr><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['creado']+'</a></td><td><span id="descripcion_' + data[0]['id'] + '">' + data[0]['descripcion'] + '</span></td><td><span id="tipo_evaluacion_'+data[0]['id']+'">' + tipo_evaluacion + '</span></td><td>0%</td><td><button class="btn btn-success">Activar</button></td></tr>');
+                $('#antiguos').append('<tr id="espacio_'+data[0]['id']+'"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['creado']+'</a></td><td><span id="descripcion_' + data[0]['id'] + '">' + data[0]['descripcion'] + '</span></td><td><span id="tipo_evaluacion_'+data[0]['id']+'">' + tipo_evaluacion + '</span></td><td>0%</td><td><span id="activar_'+data[0]['id']+'"><button class="btn btn-success" onclick="p_activar('+data[0]['id']+')">Activar</button></span></td></tr>');
             }
             $('#modal').modal('hide');
         }).fail(function(xhr, err){

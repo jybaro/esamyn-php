@@ -1,5 +1,25 @@
 <?php
 
+$ess_id = $_SESSION['ess_id'];
+$evaluacion = q("
+    SELECT 
+    * 
+    FROM 
+    esamyn.esa_evaluacion
+    ,esamyn.esa_tipo_evaluacion
+    WHERE eva_establecimiento_salud = $ess_id
+    AND eva_tipo_evaluacion = tev_id
+    AND eva_activo = 1
+    ");
+
+if (!$evaluacion) {
+    echo '<div class="alert alert-danger"><h2>No hay evaluaci&oacute;n activa</h2>Solicite a su supervisor que cree una evaluación para este Establecimiento de Salud.</div>';
+    return;
+} else {
+    $evaluacion = $evaluacion[0];
+    $_SESSION['evaluacion'] = $evaluacion;
+    $eva_id = $evaluacion['eva_id'];
+}
 //var_dump($conn);
 //$frm_id = (int)$_GET['id'];
 $unicodigo = $_SESSION['ess']['ess_unicodigo'];
@@ -647,7 +667,10 @@ body{
 
   <div style="text-align:center;margin-bottom:10px;">
     <a href="#" onclick="p_imprimir();return false;"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Generar PDF</a>
-  </div>
+    
+<!--<a href="#" onclick="p_xlsx();return false;"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Exportar datos</a>
+-->  
+</div>
   <form id="formulario" onsubmit="return false;">
     <?php p_render_tree($tree['']); ?>
   <!--input type="button" value="<?php //echo (isset($encuesta) ? 'Guardar cambios' : 'Registrar nueva encuesta') ; ?>" onclick="p_enviar_formulario()" /-->
@@ -881,6 +904,9 @@ function p_imprimir(){
         html2canvas:  { dpi: 192, letterRendering: true },
         jsPDF:        { unit: 'cm', format: 'A4', orientation: 'portrait' }
     });
+}
+function p_xlsx(){
+    $('#tabla_formulario_evaluacion').tableExport();
 }
 
 </script>
