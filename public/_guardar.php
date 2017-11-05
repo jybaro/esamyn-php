@@ -5,17 +5,19 @@ header('Content-Type: application/json');
 //echo 'desde ws rest: ';
 //var_dump($_POST);
 //
-function p_formatear_valor_sql($raw){
+function p_formatear_valor_sql($raw, $tipo = 'text'){
     if (strpos($raw, '(') !== false && substr($raw, -1) == ')') {
         //es funcion
         $result = $raw;
-    } else if (is_numeric($raw)) {
-        //es numero
-        $result = $raw;
-    } else {
-        //por defecto es texto
-        $texto = htmlentities($raw);
+    //} else if (is_numeric($raw)) {
+    } else if ($tipo == 'text' || strpos('char', $tipo) !== false) {
+        //es texto 
+        //$texto = htmlentities($raw);
+        $texto = ($raw);
         $result = "'$texto'";
+    } else {
+        //por defecto no lleva comillas
+        $result = $raw;
     }
 
     return $result;
@@ -45,8 +47,12 @@ if (isset($args[0]) && !empty($args[0]) && !empty($dataset_json)) {
     //var_dump($metadata);
     $campo_id = null;
     
+    $tipos = array();
+
     foreach($metadata as $columna) {
        // echo $columna['column_name'];
+        $tipos[substr($columna['column_name'],4)] = $columna['data_type']; 
+
         if (strpos($columna['column_name'], '_id') !== false) {
              $campo_id = $columna['column_name'];
         }
@@ -63,7 +69,7 @@ if (isset($args[0]) && !empty($args[0]) && !empty($dataset_json)) {
             $glue = '';
             foreach ($data as $columna => $valor){
                 if ($columna != 'id' && $columna != 'creado' && $columna != 'modificado') {
-                    $valor_sql = p_formatear_valor_sql($valor);
+                    $valor_sql = p_formatear_valor_sql($valor, $tipos[$columna]);
                     $sql_parejas .= "{$glue}{$prefijo}{$columna}={$valor_sql}";
                     $glue = ',';
                 }

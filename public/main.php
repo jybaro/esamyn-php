@@ -56,7 +56,15 @@ foreach ($formularios as $formulario){
     echo '</h4>';
 
     $encuestas = q("
-        SELECT * 
+        SELECT *,
+        (
+            SELECT 
+            usu_nombres || ' '||usu_apellidos AS nombre 
+            FROM 
+            esamyn.esa_usuario 
+            WHERE 
+            usu_id = enc_usuario
+        ) AS nombre 
         FROM 
         esamyn.esa_encuesta 
         WHERE 
@@ -174,6 +182,8 @@ foreach ($formularios as $formulario){
         //echo $encuesta['enc_creado'];
         $fecha = p_formatear_fecha($encuesta['enc_creado']);
         $enc_usuario = $encuesta['enc_usuario'];
+        $creado_por = $encuesta['nombre'];
+        /*
         $creado_por = q("
             SELECT 
             usu_nombres || ' '||usu_apellidos AS nombre 
@@ -182,6 +192,7 @@ foreach ($formularios as $formulario){
             WHERE 
             usu_id=$enc_usuario
             ")[0]['nombre'];
+         */
 
         echo 'Creado por ' . $creado_por . ' el ' . $fecha;
         echo '</a>';
@@ -239,12 +250,13 @@ foreach ($formularios as $formulario){
     //echo ' - ';
 
     $porcentaje_avance_formulario = 0;
-    if (!empty($formulario['frm_umbral_maximo']) && (int)$formulario['frm_umbral_maximo'] === $count_finalizado) {
+    if (!empty($formulario['frm_umbral_maximo']) && (int)$formulario['frm_umbral_maximo'] <= $count_finalizado) {
         //se finalizaron todos los necesarios
         $porcentaje_avance_formulario = 100;
-    } else if ($count > $formulario['frm_umbral_minimo']) {
+    } else if ($count_finalizado > $formulario['frm_umbral_minimo']) {
         //llenados mas de los necesarios
-        $porcentaje_avance_formulario = round($avance_formulario / $count ,0);
+        //$porcentaje_avance_formulario = round($avance_formulario / $count_finalizado ,0);
+        $porcentaje_avance_formulario = 100;
     } else {
         //aun no se alcance el mínimo
         $porcentaje_avance_formulario = round($avance_formulario / $formulario['frm_umbral_minimo'] ,0);

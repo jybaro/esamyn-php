@@ -57,18 +57,31 @@ var eva_activo_id = 0;
     <th>Descripci&oacute;n</th>
     <th>Tipo de evaluaci&oacute;n</th>
     <th>Avance</th>
+    <th>Calificación</th>
     <th></th>
   </tr>
 <tbody id="antiguos">
 <?php if ($espacios): ?>
     <?php foreach ($espacios as $i => $espacio): ?>
-    <tr id="espacio_<?=$espacio['eva_id']?>" class="<?php echo ($espacio['eva_activo'] ? 'alert alert-success' : ''); ?>">
+    <tr id="espacio_<?=$espacio['eva_id']?>" class="<?php echo ($espacio['eva_activo'] ? 'alert alert-warning' : ''); ?>">
     <th><?php echo ($i+1).'.&nbsp;'; ?></th>
-    <td><span id=""><a href="#" onclick="p_abrir('<?=$espacio['eva_id']?>');return false;"><?=$espacio['eva_creado']?></a></span></td>
+    <td><span id=""><a href="#" onclick="p_abrir('<?=$espacio['eva_id']?>');return false;"><?=p_formatear_fecha($espacio['eva_creado'])?></a></span></td>
     <td><span id="descripcion_<?=$espacio['eva_id']?>"><?php echo $espacio['eva_descripcion']; ?></span></td>
     <td><span id="tipo_evaluacion_<?=$espacio['eva_id']?>"><?=$espacio['tev_nombre']?></span></td>
     <td><?=$espacio['eva_porcentaje_avance']?>%</td>
-    <td><span id="activar_<?=$espacio['eva_id']?>"><?php if ($espacio['eva_activo'] ): ?><strong>ACTIVO</strong><?php else: ?><button class="btn btn-success" onclick="p_activar(<?=$espacio['eva_id']?>)">Activar</button><?php endif; ?></span></td>
+<?php
+$clase_destacado = ($espacio['eva_cumplido_minimos'] == 1 && $espacio['eva_cumplido_obligatorios'] == 1) ? 'success': 'danger';
+echo '<td class="alert alert-'.$clase_destacado.'">';
+$calificacion = (int)$espacio['eva_calificacion'];
+echo "$calificacion%";
+if ($espacio['eva_cumplido_minimos'] == 0) {
+    echo '<div class="alert alert-danger pull-right">No cumple mínimos</div>';
+}
+if ($espacio['eva_cumplido_obligatorios'] == 0) {
+    echo '<div class="alert alert-danger pull-right">No cumple obligatorios</div>';
+}
+?></td>
+    <td><span id="activar_<?=$espacio['eva_id']?>"><?php if ($espacio['eva_activo'] ): ?><strong>ACTIVO</strong><?php else: ?><button class="btn btn-warning" onclick="p_activar(<?=$espacio['eva_id']?>)">Activar</button><?php endif; ?></span></td>
     
     <?php if($espacio['eva_activo']): ?>
     <script>
@@ -150,7 +163,7 @@ function p_guardar(){
                 //nuevo:
                 console.log('nuevo ESPACIO');
                 var numero = $('#antiguos').children().length + 1;
-                $('#antiguos').append('<tr id="espacio_'+data[0]['id']+'"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['creado']+'</a></td><td><span id="descripcion_' + data[0]['id'] + '">' + data[0]['descripcion'] + '</span></td><td><span id="tipo_evaluacion_'+data[0]['id']+'">' + tipo_evaluacion + '</span></td><td>0%</td><td><span id="activar_'+data[0]['id']+'"><button class="btn btn-success" onclick="p_activar('+data[0]['id']+')">Activar</button></span></td></tr>');
+                $('#antiguos').append('<tr id="espacio_'+data[0]['id']+'"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['creado']+'</a></td><td><span id="descripcion_' + data[0]['id'] + '">' + data[0]['descripcion'] + '</span></td><td><span id="tipo_evaluacion_'+data[0]['id']+'">' + tipo_evaluacion + '</span></td><td>0%</td><td><span id="activar_'+data[0]['id']+'"><button class="btn btn-warning" onclick="p_activar('+data[0]['id']+')">Activar</button></span></td></tr>');
             }
             $('#modal').modal('hide');
         }).fail(function(xhr, err){
@@ -203,11 +216,11 @@ function p_activar(eva_id){
         }).done(function(data){
             console.log('Activado OK', data);
             data = eval(data);
-            $('#espacio_' + eva_activo_id).addClass('alert alert-success');
+            $('#espacio_' + eva_activo_id).addClass('alert alert-warning');
             $('#activar_' + eva_activo_id).html('<strong>ACTIVADO</strong>');
 
-            $('#espacio_' + anterior_eva_activo_id).removeClass('alert alert-success');
-            $('#activar_' + anterior_eva_activo_id).html('<button class="btn btn-success" onclick="p_activar('+anterior_eva_activo_id+')">Activar</button>');
+            $('#espacio_' + anterior_eva_activo_id).removeClass('alert alert-warning');
+            $('#activar_' + anterior_eva_activo_id).html('<button class="btn btn-warning" onclick="p_activar('+anterior_eva_activo_id+')">Activar</button>');
 
         }).fail(function(xhr, err){
             console.error('ERROR AL GUARDAR', xhr, err);

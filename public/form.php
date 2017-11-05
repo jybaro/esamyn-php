@@ -677,9 +677,10 @@ body{
     <?php if(!$solo_lectura):?>
     <div class="alert alert-success" style="display:none;" id="guardado_ok">Formulario guardado con éxito</div>
     <div class="alert alert-danger" style="display:none;" id="guardado_error">No se pudo guardar el formulario</div>
-    <button class="btn btn-success" onclick="p_enviar_formulario()" />Guardar</button>
-    <button class="btn btn-primary" onclick="p_enviar_formulario('salir')" />Guardar y salir</button>
-    <button class="btn btn-danger" onclick="p_finalizar()" />Finalizar</button>
+    <div class="alert alert-warning" style="display:none;" id="guardado_warning"></div>
+    <button class="btn btn-success" id="boton_guardar" onclick="p_enviar_formulario()" />Guardar</button>
+    <button class="btn btn-primary" id="boton_guardar_salir" onclick="p_enviar_formulario('salir')" />Guardar y salir</button>
+    <button class="btn btn-danger" id="boton_finalizar" onclick="p_finalizar()" />Finalizar</button>
     <?php endif; ?>
   </form>
 </div>
@@ -695,32 +696,28 @@ body{
 <script src="/js/html2pdf.js"></script>
 
 <script>
+
+setInterval(function(){
+    p_enviar_formulario('background');
+}, 600000);
+
 function p_enviar_formulario(accion) {
     accion = ((typeof(accion) === 'undefined') ? '' : accion);
-    $('#vm_procesando').modal('show');
+
+    if (accion != 'background') {
+        $('#boton_guardar').prop('disabled', true);
+        $('#boton_guardar_salir').prop('disabled', true);
+        $('#boton_finalizar').prop('disabled', true);
+
+        $('#vm_procesando').modal('show');
+    }
+
     var finalizada = (accion=='finalizada') ? 1: 0;
     var respuestas_json = [];
     var respuestas_json = $('#formulario').serializeArray();
-    /*
-    var respuestas = document.getElementsByTagName('input');
-    console.log(respuestas);
-    for(respuesta in respuestas) {
-        //console.log(respuesta, typeof(respuesta), typeof(respuestas[respuesta].value));
-        if (respuesta.search('prg') !== -1 && typeof(respuestas[respuesta].value) === 'string') {
-            var valor = respuestas[respuesta].value;
-            var id = respuestas[respuesta].id.replace('prg', '');
-            //console.log(respuesta);
-            //respuestas_json[id] = {[id]: valor};
-            respuestas_json.push({id: id, valor: valor});
-            //respuestas_json[id] = valor;
-        }
-}
-     */
 
-    //respuestas.forEach(function(respuesta){
-    //    json[respuesta.id] = respuesta.value;
-    //});
     console.log('JSON: ', respuestas_json);
+
     var jsondata = JSON.stringify(respuestas_json);
     var xmlhttp = new XMLHttpRequest();
     var url = "/_guardar_respuestas";
@@ -728,20 +725,36 @@ function p_enviar_formulario(accion) {
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     //xmlhttp.setRequestHeader("Content-type", "application/json");
     xmlhttp.onreadystatechange = function () { //Call a function when the state changes.
-        $('#vm_procesando').modal('hide');
+        if (accion != 'background') {
+            $('#vm_procesando').modal('hide');
+
+            $('#boton_guardar').prop('disabled', false);
+            $('#boton_guardar_salir').prop('disabled', false);
+            $('#boton_finalizar').prop('disabled', false);
+        }
+
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             //console.log('RESPUESTA REST: ', xmlhttp.responseText);
-            $('#guardado_error').hide('fast');
+            $('#guardado_error').hide(0);
             $('#guardado_ok').show('fast');
             respuesta = JSON.parse(xmlhttp.responseText);
             console.log('RESPUESTA REST: ', respuesta);
 
+            if (respuesta.warning !== '') {
+
+                $('#guardado_warning').text(respuesta.warning);
+                $('#guardado_warning').show('fast');
+            } else {
+                $('#guardado_warning').hide(0);
+            }
+
             window.enc_id = respuesta['enc_id'];
-            if (accion !== '') {
+            if (accion == 'salir') {
                 window.location.replace('/main');
             }
         } else {
-            $('#guardado_ok').hide('fast');
+            $('#guardado_ok').hide(0);
+            $('#guardado_warning').hide(0);
             $('#guardado_error').show('fast');
         }
     }
@@ -848,7 +861,8 @@ function p_finalizar(){
 
     if (count_total == count_lleno) {
         if (confirm('Al finalizar un formulario ya no podrá editar la información.\n\nSeguro desea finalizar el formulario?')) {
-            p_enviar_formulario('finalizada');
+            //p_enviar_formulario('finalizada');
+            p_enviar_formulario('');
         } else {
         }
     } else {
