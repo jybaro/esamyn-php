@@ -212,7 +212,7 @@ foreach ($formularios as $formulario){
                 '>Finalizada</div>";
         } else {
             $porcentaje = round($count_preguntas_respondidas * 100 / $count_preguntas, 0);
-            $avance_formulario += $porcentaje;
+            //$avance_formulario += $porcentaje/100;
             $xpos = $porcentaje - 100;
             echo "<div style='
                 width:100px;
