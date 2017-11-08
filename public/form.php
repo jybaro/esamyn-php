@@ -746,12 +746,16 @@ function p_enviar_formulario(accion) {
                 $('#guardado_warning').show('fast');
             } else {
                 $('#guardado_warning').hide(0);
+                if (accion == 'finalizada') {
+                    window.location.replace('/main');
+                }
             }
 
-            window.enc_id = respuesta['enc_id'];
             if (accion == 'salir') {
                 window.location.replace('/main');
             }
+
+            window.enc_id = respuesta['enc_id'];
         } else {
             $('#guardado_ok').hide(0);
             $('#guardado_warning').hide(0);
@@ -861,8 +865,8 @@ function p_finalizar(){
 
     if (count_total == count_lleno) {
         if (confirm('Al finalizar un formulario ya no podrá editar la información.\n\nSeguro desea finalizar el formulario?')) {
-            //p_enviar_formulario('finalizada');
-            p_enviar_formulario('');
+            p_enviar_formulario('finalizada');
+            //p_enviar_formulario('');
         } else {
         }
     } else {

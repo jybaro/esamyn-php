@@ -18,7 +18,7 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
 
 
 
-        $count_encuestas = q("SELECT COUNT(*) FROM esamyn.esa_encuesta WHERE enc_evaluacion=$eva_id AND enc_formulario=$frm_id AND enc_establecimiento_salud=$ess_id")[0]['count'];
+        $count_encuestas = q("SELECT COUNT(*) FROM esamyn.esa_encuesta WHERE enc_evaluacion=$eva_id AND enc_formulario=$frm_id AND enc_establecimiento_salud=$ess_id AND enc_finalizada=1")[0]['count'];
         $umbral_maximo = q("SELECT frm_umbral_maximo FROM esamyn.esa_formulario WHERE frm_id=$frm_id")[0]['frm_umbral_maximo'];
 
 
@@ -33,10 +33,11 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
             echo '[preguntas:'.count($preguntas).']';
 
             
-            if (empty($umbral_maximo) || $count_encuestas <= $umbral_maximo) {
+            if (empty($umbral_maximo) || $count_encuestas < $umbral_maximo) {
                 $finalizada = (int)(isset($_POST['finalizada']) ? $_POST['finalizada'] : '0');
             } else {
                 $finalizada = false;
+                //$warning = "Ya no se puede finalizar esta encuesta, pues se ha alcanzado la cantidad máxima para este formulario ($count_encuestas - $umbral_maximo)";  
                 $warning = "Ya no se puede finalizar esta encuesta, pues se ha alcanzado la cantidad máxima para este formulario ($umbral_maximo)";  
             }
 
