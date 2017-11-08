@@ -163,7 +163,7 @@ function p_guardar(){
                 //nuevo:
                 console.log('nuevo ESPACIO');
                 var numero = $('#antiguos').children().length + 1;
-                $('#antiguos').append('<tr id="espacio_'+data[0]['id']+'"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['creado']+'</a></td><td><span id="descripcion_' + data[0]['id'] + '">' + data[0]['descripcion'] + '</span></td><td><span id="tipo_evaluacion_'+data[0]['id']+'">' + tipo_evaluacion + '</span></td><td>0%</td><td><span id="activar_'+data[0]['id']+'"><button class="btn btn-warning" onclick="p_activar('+data[0]['id']+')">Activar</button></span></td></tr>');
+                $('#antiguos').append('<tr id="espacio_'+data[0]['id']+'"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['creado']+'</a></td><td><span id="descripcion_' + data[0]['id'] + '">' + data[0]['descripcion'] + '</span></td><td><span id="tipo_evaluacion_'+data[0]['id']+'">' + tipo_evaluacion + '</span></td><td>0%</td><td class="alert alert-danger">0%<div class="alert alert-danger pull-right">No cumple mínimos</div><div class="alert alert-danger pull-right">No cumple obligatorios</div></td><td><span id="activar_'+data[0]['id']+'"><button class="btn btn-warning" onclick="p_activar('+data[0]['id']+')">Activar</button></span></td></tr>');
             }
             $('#modal').modal('hide');
         }).fail(function(xhr, err){
@@ -187,8 +187,36 @@ function p_nuevo(){
 
 }
 
-
 function p_activar(eva_id){
+
+    var dataset_json = {'eva_id':eva_id};
+
+    $.ajax({
+        url: '_activar',
+        type: 'POST',
+        dataType: 'json',
+        data: JSON.stringify(dataset_json),
+        contentType: 'application/json'
+    }).done(function(evaluaciones){
+        console.log('Activado OK', evaluaciones);
+
+        evaluaciones.forEach(function(eva){
+            if (eva.eva_id == eva_id) {
+                $('#espacio_' + eva_id).addClass('alert alert-warning');
+                $('#activar_' + eva_id).html('<strong>ACTIVADO</strong>');
+            } else {
+                 $('#espacio_' + eva.eva_id).removeClass('alert alert-warning');
+                 $('#activar_' + eva.eva_id).html('<button class="btn btn-warning" onclick="p_activar('+eva.eva_id+')">Activar</button>');
+            }
+        });
+    }).fail(function(xhr, err){
+        console.error('Error al activar', xhr, err);
+    });
+
+}
+
+
+function p_activar_old(eva_id){
 
     var dataset_json = [{'id':eva_id, 'activo': 1}];
     var anterior_eva_activo_id = eva_activo_id;
