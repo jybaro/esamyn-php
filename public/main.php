@@ -91,7 +91,7 @@ foreach ($formularios as $formulario){
 
     foreach($encuestas as $encuesta){
         $enc_id = $encuesta['enc_id'];
-
+/*
         $preguntas = array(0=>array(
             'count' => 0,
             'padre' => null,
@@ -175,6 +175,7 @@ foreach ($formularios as $formulario){
                 }
             }
         }
+*/
         $count++;
         $enc_id = $encuesta['enc_id'];
         echo '<li>';
@@ -211,7 +212,10 @@ foreach ($formularios as $formulario){
                 display:inline-block;
                 '>Finalizada</div>";
         } else {
-            $porcentaje = round($count_preguntas_respondidas * 100 / $count_preguntas, 0);
+            //$porcentaje = round($count_preguntas_respondidas * 100 / $count_preguntas, 0);
+            $porcentaje = $encuesta['enc_porcentaje_avance'];
+            $count_preguntas = $encuesta['enc_numero_preguntas'];
+            $count_preguntas_respondidas = $encuesta['enc_numero_preguntas_respondidas'];
             //$avance_formulario += $porcentaje/100;
             $xpos = $porcentaje - 100;
             echo "<div style='

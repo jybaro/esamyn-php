@@ -734,7 +734,7 @@ function p_enviar_formulario(accion) {
         }
 
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            //console.log('RESPUESTA REST: ', xmlhttp.responseText);
+            console.log('RESPUESTA REST: ', xmlhttp.responseText);
             $('#guardado_error').hide(0);
             $('#guardado_ok').show('fast');
             respuesta = JSON.parse(xmlhttp.responseText);
