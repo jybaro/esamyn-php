@@ -73,6 +73,7 @@ foreach ($formularios as $formulario){
         enc_establecimiento_salud=$ess_id
         AND 
         enc_evaluacion=$eva_id
+        ORDER BY enc_creado
         ");
 
     echo '<ol>';

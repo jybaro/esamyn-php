@@ -82,7 +82,7 @@ if (isset($_SESSION['ess_nombre'])){
             <?php if ($_nivel <= 1): ?>
             <li role="separator" class="divider"></li>
             <li><a href="/preguntas">Contenidos</a></li>
-            <li><a href="/cargarForm">Cargar cat&aacute;logo de formulario</a></li>
+            <!--li><a href="/cargarForm">Cargar cat&aacute;logo de formulario</a></li-->
             <?php endif; ?>
             <li role="separator" class="divider"></li>
           </ul>
