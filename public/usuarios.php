@@ -75,6 +75,7 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
     <th></th>
     <th>Número de cédula</th>
     <th>Nombre</th>
+    <th>Rol</th>
     <th>Correo electr&oacute;nico</th>
   </tr>
 <tbody id="antiguos">
@@ -82,7 +83,8 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
   <tr>
     <th><?php echo ($i+1).'.&nbsp;'; ?></th>
     <td><span id=""><a href="#" onclick="p_abrir('<?=$us['usu_id']?>');return false;"><?=$us['usu_cedula']?></a></span></td>
-    <td><span id="nombre_<?=$us['usu_id']?>"><?php echo $us['usu_nombres'].' '.$us['usu_apellidos']; ?></span></td>
+    <td><span id="nombre_<?=$us['usu_id']?>"><?php echo $us['usu_apellidos'].' '.$us['usu_nombres']; ?></span></td>
+    <td><span id="rol_<?=$us['usu_id']?>"><?=$us['rol']?></span></td>
     <td><span id="correo_electronico_<?=$us['usu_id']?>"><?=$us['usu_correo_electronico']?></span></td>
   </tr>
 <?php endforeach; ?>
@@ -116,48 +118,52 @@ function p_abrir(id){
 
 function p_guardar(){
     if ($('#nombres').val() !== '' && $('#apellidos').val() !== '' && $('#cedula').val() !== '' && $('#correo_electronico').val() !== '') {
-    var respuestas_json = $('#formulario').serializeArray();
-    console.log(respuestas_json);
-    dataset_json = [];
-    dataset_json[0] = {};
-    respuestas_json.forEach(function(respuesta_json){
-        var name =  respuesta_json['name'];
-        var value = respuesta_json['value'];
-        dataset_json[0][name]=value;
+        if (verificarCedula($('#cedula').val())) {
+            var respuestas_json = $('#formulario').serializeArray();
+            console.log(respuestas_json);
+            dataset_json = [];
+            dataset_json[0] = {};
+            respuestas_json.forEach(function(respuesta_json){
+                var name =  respuesta_json['name'];
+                var value = respuesta_json['value'];
+                dataset_json[0][name]=value;
 
-    });
+            });
 
-    dataset_json[0]['username'] = dataset_json[0]['cedula'];
-    dataset_json[0]['password'] = md5(dataset_json[0]['cedula']);
+            dataset_json[0]['username'] = dataset_json[0]['cedula'];
+            dataset_json[0]['password'] = md5(dataset_json[0]['cedula']);
 
-    console.log('dataset_json', dataset_json);
-    $.ajax({
-        url: '_guardar/usuario',
-        type: 'POST',
-        dataType: 'json',
-        data: JSON.stringify(dataset_json),
+            console.log('dataset_json', dataset_json);
+            $.ajax({
+                url: '_guardar/usuario',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: JSON.stringify(dataset_json),
         //data: dataset_json,
         contentType: 'application/json'
-    }).done(function(data){
-        console.log('Guardado OK', data)
-        data = eval(data);
+            }).done(function(data){
+                console.log('Guardado OK', data)
+                    data = eval(data);
 
-        if($("#nombre_" + data[0]['id']).length) { // 0 == false; >0 == true
-            //ya existe:
-            $('#cedula_' + data[0]['id']).text(data[0]['cedula']);
-            $('#nombre_' + data[0]['id']).text(data[0]['nombres'] + ' ' + data[0]['apellidos']);
-            $('#correo_electronico_' + data[0]['id']).text(data[0]['correo_electronico']);
+                if($("#nombre_" + data[0]['id']).length) { // 0 == false; >0 == true
+                    //ya existe:
+                    $('#cedula_' + data[0]['id']).text(data[0]['cedula']);
+                    $('#nombre_' + data[0]['id']).text(data[0]['nombres'] + ' ' + data[0]['apellidos']);
+                    $('#correo_electronico_' + data[0]['id']).text(data[0]['correo_electronico']);
+                } else {
+                    //nuevo:
+                    console.log('nuevo USUARIO');
+                    var numero = $('#antiguos').children().length + 1;
+                    $('#antiguos').append('<tr><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['cedula']+'</a></td><td><span id="nombre_' + data[0]['id'] + '">' + data[0]['nombres'] + ' ' + data[0]['apellidos'] + '</span></td><td><span id="rol_' + data[0]['id'] + '">'+data[0]['rol']+'</span></td><td><span id="correo_electronico_'+data[0]['id']+'">'+data[0]['correo_electronico'] + '</span></td></tr>');
+                }
+                $('#modal').modal('hide');
+            }).fail(function(xhr, err){
+                console.error('ERROR AL GUARDAR', xhr, err);
+                $('#modal').modal('hide');
+            });
         } else {
-            //nuevo:
-            console.log('nuevo USUARIO');
-            var numero = $('#antiguos').children().length + 1;
-            $('#antiguos').append('<tr><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data[0]['id']+'\')">'+data[0]['cedula']+'</a></td><td><span id="nombre_' + data[0]['id'] + '">' + data[0]['nombres'] + ' ' + data[0]['apellidos'] + '</span></td><td><span id="correo_electronico_'+data[0]['id']+'">'+data[0]['correo_electronico'] + '</span></td></tr>');
+            alert ('Ingrese un número de cédula válido');
         }
-        $('#modal').modal('hide');
-    }).fail(function(xhr, err){
-        console.error('ERROR AL GUARDAR', xhr, err);
-        $('#modal').modal('hide');
-    });
     } else {
         alert ('Ingrese al menos el número de cédula, nombres, apellidos y correo electrónico');
     }
@@ -195,6 +201,25 @@ function p_eliminar(cedula, nombre){
         });
         $('#modal').modal('hide');
     }
+}
+function verificarCedula(cedula) {
+  if (typeof(cedula) == 'string' && cedula.length == 10 && /^\d+$/.test(cedula)) {
+    var digitos = cedula.split('').map(Number);
+    var codigo_provincia = digitos[0] * 10 + digitos[1];
+
+    //if (codigo_provincia >= 1 && (codigo_provincia <= 24 || codigo_provincia == 30) && digitos[2] < 6) {
+
+    if (codigo_provincia >= 1 && (codigo_provincia <= 24 || codigo_provincia == 30)) {
+      var digito_verificador = digitos.pop();
+
+      var digito_calculado = digitos.reduce(
+        function (valorPrevio, valorActual, indice) {
+          return valorPrevio - (valorActual * (2 - indice % 2)) % 9 - (valorActual == 9) * 9;
+        }, 1000) % 10;
+      return digito_calculado === digito_verificador;
+}
+  }
+  return false;
 }
 </script>
 <script>
