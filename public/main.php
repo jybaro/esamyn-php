@@ -21,6 +21,7 @@ $evaluacion = q("
     WHERE eva_establecimiento_salud = $ess_id
     AND eva_tipo_evaluacion = tev_id
     AND eva_activo = 1
+    AND eva_borrado IS NULL
     ");
 
 if (!$evaluacion) {

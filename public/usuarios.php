@@ -1,8 +1,9 @@
 <?php
 //$us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=usu_rol) AS rol FROM esamyn.esa_usuario ORDER BY usu_cedula");
 $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=usu_rol) AS rol FROM esamyn.esa_usuario ORDER BY usu_apellidos");
-?>
 
+$rol = $_SESSION['rol'];
+?>
 <h2>Usuarios</h2>
 
 <a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:10px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a>
@@ -52,7 +53,9 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
     <label for="rol" class="col-sm-2 control-label">Rol:</label>
     <div class="col-sm-10">
       <select id="rol" name="rol" class="">
+        <?php if ($rol == 1): ?>
         <option value="1">Administrador</option>
+        <?php endif; ?>
         <option value="2">Supervisor</option>
         <option value="3">Operador</option>
       </select>
@@ -65,6 +68,7 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
         <button type="button" class="btn btn-danger" onclick="p_eliminar()" id="formulario_eliminar">Eliminar usuario</button>
+        <button type="button" class="btn btn-primary" onclick="p_reiniciar()" id="formulario_reiniciar">Reiniciar contrase&ntilde;a</button>
         <button type="button" class="btn btn-success" onclick="p_guardar()">Guardar cambios</button>
       </div>
     </div><!-- /.modal-content -->

@@ -11,6 +11,7 @@ $evaluacion = q("
     WHERE eva_establecimiento_salud = $ess_id
     AND eva_tipo_evaluacion = tev_id
     AND eva_activo = 1
+    AND eva_borrado IS NULL
     ");
 
 if (!$evaluacion) {
@@ -59,12 +60,10 @@ FROM esamyn.esa_evaluacion
 , esamyn.esa_provincia
 WHERE
 eva_establecimiento_salud = ess_id
-AND
-eva_tipo_evaluacion = tev_id
-AND
-ess_canton = can_id
-AND
-can_provincia = pro_id
+    AND eva_tipo_evaluacion = tev_id
+    AND ess_canton = can_id
+    AND can_provincia = pro_id
+    AND eva_borrado IS NULL
 $filtro
 ");
 

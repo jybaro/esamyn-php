@@ -21,21 +21,29 @@ if (!empty($dataset_json)) {
         $cedula = $dataset->cedula;
         $username = $cedula;
 
-        if (isset($dataset->resetear && !empty($dataset->resetear))) {
+        if (isset($dataset->reiniciar) && !empty($dataset->reiniciar)) {
             //resetea clave
 
             $password = md5($cedula);
             q("UPDATE esamyn.esa_usuario SET usu_password='$password' WHERE usu_cedula='$cedula'");
         } else {
             //guarda datos de usuario
+            $campos = 'rol,nombres,apellidos,username,password,cedula,telefono,correo_electronico';
+            $campos_array = explode(',', $campos);
 
             $count_usuarios_cedula = q("SELECT COUNT(*) FROM esamyn.esa_usuario WHERE usu_cedula='$cedula'");
 
             if ($count_usuarios_cedula === 0) {
                 //crea usuario
-                $sql_insert_campos = '';
+                $sql_insert_campos = $campos;
                 $sql_insert_valores = '';
-                foreach($dataset as $k => $v) {
+                foreach ($campos_array as $campo){
+                    if (isset($dataset->$campo && !empty($dataset->$campo))) {
+                        switch ($campo){
+                        case 'rol':
+                            break;
+                        }
+                    }
 
                 }
                 q("INSERT INTO esamyn.esa_usuario($sql_insert_campos) VALUES($sql_insert_valores)");

@@ -2,7 +2,19 @@
 <?php
 $ess_id = $_SESSION['ess_id'];
 $tipos_evaluacion = q("SELECT * FROM esamyn.esa_tipo_evaluacion");
-$espacios = q("SELECT *,(SELECT tev_nombre FROM esamyn.esa_tipo_evaluacion WHERE tev_id=eva_tipo_evaluacion) AS tev_nombre from esamyn.esa_evaluacion WHERE eva_establecimiento_salud=$ess_id ORDER BY eva_creado");
+$espacios = q("
+    SELECT *
+    ,(
+        SELECT 
+        tev_nombre 
+        FROM esamyn.esa_tipo_evaluacion 
+        WHERE tev_id=eva_tipo_evaluacion
+    ) AS tev_nombre 
+    FROM esamyn.esa_evaluacion 
+    WHERE eva_establecimiento_salud=$ess_id 
+    AND eva_borrado IS NULL 
+    ORDER BY eva_creado
+");
 ?>
 
 <a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:10px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a>

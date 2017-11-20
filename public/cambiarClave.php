@@ -12,6 +12,9 @@ if (isset($_POST['oldpassword']) && !empty($_POST['oldpassword']) && isset($_POS
         if ($new == $new2) {
 
             $result = q("UPDATE esamyn.esa_usuario SET usu_password=md5('$newpassword') WHERE usu_id=$usu_id");
+            echo '<div class="alert alert-success">';
+            echo 'Contrase&ntilde;a cambiada con &eacute;xito.';
+            echo '</div>';
         } else {
             echo '<div class="alert alert-danger">';
             echo 'Las contrase&ntilde;as no coinciden.';
