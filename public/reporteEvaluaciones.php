@@ -2,6 +2,8 @@
 <?php
 
 $ess_id = $_SESSION['ess_id'];
+
+/*
 $evaluacion = q("
     SELECT 
     * 
@@ -22,6 +24,7 @@ if (!$evaluacion) {
     $_SESSION['evaluacion'] = $evaluacion;
     $eva_id = $evaluacion['eva_id'];
 }
+ */
 
 $filtro = '';
 
