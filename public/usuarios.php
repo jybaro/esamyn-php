@@ -105,7 +105,7 @@ function p_abrir(id){
     }).done(function(data){
         data = eval(data);
         usu = data[0];
-        console.log(usu);
+        console.log('ABRIENDO USUARIO', usu);
         $('#formulario_titulo').text(usu['cedula'] + ' "' + usu['nombres'] + ' ' + usu['apellidos'] + '"');
         $('#formulario_eliminar').show();
         $("#cedula").prop('disabled', true);
@@ -120,7 +120,59 @@ function p_abrir(id){
     });
 }
 
+
 function p_guardar(){
+
+    if ($('#nombres').val() !== '' && $('#apellidos').val() !== '' && $('#cedula').val() !== '' && $('#correo_electronico').val() !== '') {
+        if (verificarCedula($('#cedula').val())) {
+            var respuestas_json = $('#formulario').serializeArray();
+            console.log('respuestas json', respuestas_json);
+            dataset_json = {};
+            respuestas_json.forEach(function(respuesta_json){
+                var name =  respuesta_json['name'];
+                var value = respuesta_json['value'];
+                dataset_json[name] = value;
+
+            });
+            dataset_json['cedula'] = $('#cedula').val();
+
+            console.log('dataset_json', dataset_json);
+            $.ajax({
+                url: '_guardarUsuario',
+                    type: 'POST',
+                    //dataType: 'json',
+                    data: JSON.stringify(dataset_json),
+                    //contentType: 'application/json'
+            }).done(function(data){
+                console.log('Guardado OK, data:', data);
+                data = eval(data)[0];
+
+                if ($("#nombre_" + data['id']).length) { // 0 == false; >0 == true
+                    //ya existe:
+                    $('#cedula_' + data['id']).text(data['cedula']);
+                    $('#nombre_' + data['id']).text(data['nombres'] + ' ' + data['apellidos']);
+                    $('#correo_electronico_' + data['id']).text(data['correo_electronico']);
+                } else {
+                    //nuevo:
+                    console.log('nuevo USUARIO');
+                    var numero = $('#antiguos').children().length + 1;
+                    $('#antiguos').append('<tr><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data['id']+'\')">'+data['cedula']+'</a></td><td><span id="nombre_' + data['id'] + '">' + data['nombres'] + ' ' + data['apellidos'] + '</span></td><td><span id="rol_' + data['id'] + '">'+data['rol']+'</span></td><td><span id="correo_electronico_'+data['id']+'">'+data['correo_electronico'] + '</span></td></tr>');
+                }
+                $('#modal').modal('hide');
+            }).fail(function(xhr, err){
+                console.error('ERROR AL GUARDAR', xhr, err);
+                $('#modal').modal('hide');
+            });
+        } else {
+            alert ('Ingrese un número de cédula válido');
+        }
+    } else {
+        alert ('Ingrese al menos el número de cédula, nombres, apellidos y correo electrónico');
+    }
+}
+
+function p_guardar_old(){
+
     if ($('#nombres').val() !== '' && $('#apellidos').val() !== '' && $('#cedula').val() !== '' && $('#correo_electronico').val() !== '') {
         if (verificarCedula($('#cedula').val())) {
             var respuestas_json = $('#formulario').serializeArray();

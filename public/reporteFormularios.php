@@ -10,6 +10,7 @@ $evaluacion = q("
     WHERE eva_establecimiento_salud = $ess_id
     AND eva_tipo_evaluacion = tev_id
     AND eva_activo = 1
+    AND eva_borrado IS NULL
     ");
 
 if (!$evaluacion) {
@@ -76,7 +77,26 @@ foreach($formularios as $formulario) {
     echo '</ol>';
 
 
-    $respuestas = q("SELECT *,(SELECT usu_nombres || ' ' || usu_apellidos FROM esamyn.esa_usuario WHERE usu_id=enc_usuario) AS usuario FROM esamyn.esa_respuesta, esamyn.esa_encuesta WHERE res_encuesta = enc_id AND enc_formulario = $frm_id AND enc_establecimiento_salud=$ess_id ORDER BY enc_id");
+    $respuestas = q("
+        SELECT *
+        ,(
+            SELECT 
+                usu_nombres || ' ' || usu_apellidos 
+            FROM esamyn.esa_usuario 
+            WHERE usu_id=enc_usuario
+        ) AS usuario 
+        FROM 
+            esamyn.esa_respuesta
+            ,esamyn.esa_encuesta 
+            ,esamyn.esa_evaluacion
+        WHERE 
+            res_encuesta = enc_id 
+            AND eva_id = enc_evaluacion
+            AND eva_borrado IS NULL
+            AND enc_formulario = $frm_id 
+            AND enc_establecimiento_salud=$ess_id 
+        ORDER BY enc_id
+    ");
 
     $encuestas = array();
     if (is_array($respuestas)) {
