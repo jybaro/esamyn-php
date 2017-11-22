@@ -32,7 +32,11 @@ if (!empty($dataset_json)) {
             $password = md5($cedula);
             $result = q("UPDATE esamyn.esa_usuario SET usu_password='$password' WHERE usu_id=$id RETURNING *");
         } else if (isset($dataset->borrar) && !empty($dataset->borrar)) {
-            $result = q("UPDATE esamyn.esa_usuario SET usu_borrado=now() WHERE usu_id=$id RETURNING *");
+            if ($_SESSION['cedula'] != $cedula) {
+                $result = q("UPDATE esamyn.esa_usuario SET usu_borrado=now() WHERE usu_id=$id RETURNING *");
+            } else {
+                $result = array(array('ERROR'=>"No se puede borrar el mismo usuario con el que se encuentra abierta la sesion"));
+            }
         } else if (isset($dataset->recuperar) && !empty($dataset->recuperar)) {
             $sql= ("SELECT COUNT(*) FROM esamyn.esa_usuario WHERE usu_borrado IS NULL AND usu_cedula='$cedula'");
             $result = q($sql);

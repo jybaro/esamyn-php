@@ -10,6 +10,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
     //die();
     $cedula = $_POST['cedula'];
     $password = $_POST['password'];
+    $md5_password = md5($password);
     $ess_id = $_POST['establecimiento_salud'];
     $ess = q("SELECT * FROM esamyn.esa_establecimiento_salud WHERE ess_id = $ess_id" );
 
@@ -23,12 +24,21 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
     //$usuario = q("SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_password='$password'");
        //echo "<div>SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_password='$password'</div>";
     //
-    $usuario = q("SELECT * FROM esamyn.esa_usuario, esamyn.esa_rol  WHERE usu_borrado IS NULL AND usu_rol = rol_id AND usu_cedula='$cedula'");
+    $usuario = q("
+        SELECT * 
+        FROM esamyn.esa_usuario
+            , esamyn.esa_rol  
+        WHERE
+            usu_borrado IS NULL 
+            AND usu_rol = rol_id 
+            AND usu_cedula='$cedula' 
+            AND usu_password='$md5_password'
+    ");
     //$usuario = q("SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_cedula<>'1713175071'");
     //
     //$usuario = q("SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_password=md5($password)");
     //$usuario = q("SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_password='".md5($password)."'");
-   // echo count($usuario);
+    // echo count($usuario);
 
     //var_dump($usuario);
     if (true && is_array($usuario) && count($usuario) == 1){

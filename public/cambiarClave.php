@@ -1,17 +1,17 @@
 <?php
 if (isset($_POST['oldpassword']) && !empty($_POST['oldpassword']) && isset($_POST['newpassword']) && !empty($_POST['newpassword']) && isset($_POST['new2password']) && !empty($_POST['new2password'])){
     $old = $_POST['oldpassword'];
-    $new = $_POST['new'];
-    $new2 = $_POST['new2'];
+    $new = $_POST['newpassword'];
+    $new2 = $_POST['new2password'];
 
     $usu_id = $_SESSION['usu_id'];
 
-    $password = q("SELECT usu_password FROM esamyn.esa_usuario wHERE usu_id=$usu_id")[0]['usu_password'];
+    $password = q("SELECT usu_password FROM esamyn.esa_usuario WHERE usu_id=$usu_id")[0]['usu_password'];
 
     if (md5($old) == $password) {
         if ($new == $new2) {
 
-            $result = q("UPDATE esamyn.esa_usuario SET usu_password=md5('$newpassword') WHERE usu_id=$usu_id");
+            $result = q("UPDATE esamyn.esa_usuario SET usu_password='".md5($new)."' WHERE usu_id=$usu_id");
             echo '<div class="alert alert-success">';
             echo 'Contrase&ntilde;a cambiada con &eacute;xito.';
             echo '</div>';
@@ -69,7 +69,7 @@ if (isset($_POST['oldpassword']) && !empty($_POST['oldpassword']) && isset($_POS
     <div class="col-md-2">
     </div>
     <div class="col-md-4">
-      <input type="submit" class="form-control btn btn-primary" id="new2password" name="new2password" />
+      <input type="submit" class="form-control btn btn-primary" id="" name="" />
     </div>
   </div>
 </div>

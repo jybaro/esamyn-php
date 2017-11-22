@@ -92,7 +92,7 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
   </tr>
 <tbody id="antiguos">
 <?php foreach($us_listado as $i=>$us): ?>
-<tr class="<?php echo (empty($us['usu_borrado'])?'':'alert alert-danger'); ?>">
+<tr class="<?php echo (empty($us['usu_borrado']) ? ($us['usu_password'] == md5($us['usu_cedula']) ? 'alert alert-info' : '') : 'alert alert-danger'); ?>">
     <th><?php echo ($i+1).'.&nbsp;'; ?></th>
     <td><span id=""><a href="#" onclick="p_abrir('<?=$us['usu_id']?>');return false;"><?=$us['usu_cedula']?></a></span></td>
     <td><span id="nombre_<?=$us['usu_id']?>"><?php echo $us['usu_apellidos'].' '.$us['usu_nombres']; ?></span></td>
@@ -116,10 +116,15 @@ function p_abrir(id){
         usu = data[0];
         console.log('ABRIENDO USUARIO', usu);
 
+        var badge = '';
         if (usu['borrado'] == null) {
-            $('#formulario_titulo').text(usu['cedula'] + ' "' + usu['nombres'] + ' ' + usu['apellidos'] + '"');
+            if (usu['password'] == md5(usu['cedula'])){
+                badge = '<span class="badge">CLAVE ES LA CEDULA</span>';
+                $('#formulario_reiniciar').hide();
+            } else {
+                $('#formulario_reiniciar').show();
+            }
             $('#formulario_eliminar').show();
-            $('#formulario_reiniciar').show();
             $('#formulario_guardar').show();
             $('#formulario_recuperar').hide();
             for (key in usu){
@@ -127,7 +132,7 @@ function p_abrir(id){
                 $('#' + key).prop('disabled', false);
             }
         } else {
-            $('#formulario_titulo').html(usu['cedula'] + ' "' + usu['nombres'] + ' ' + usu['apellidos'] + '" <span class="badge">ELIMINADO</span>');
+            badge = '<span class="badge">ELIMINADO</span>';
             $('#formulario_eliminar').hide();
             $('#formulario_reiniciar').hide();
             $('#formulario_guardar').hide();
@@ -137,6 +142,7 @@ function p_abrir(id){
                 $('#' + key).prop('disabled', true);
             }
         }
+        $('#formulario_titulo').html(usu['cedula'] + ' "' + usu['nombres'] + ' ' + usu['apellidos'] + '" ' + badge);
 
         $("#cedula").prop('disabled', true);
         
@@ -335,7 +341,7 @@ function p_guardar(){
                         //nuevo:
                         console.log('nuevo USUARIO');
                         var numero = $('#antiguos').children().length + 1;
-                        $('#antiguos').append('<tr><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data['id']+'\')">'+data['cedula']+'</a></td><td><span id="nombre_' + data['id'] + '">' + data['apellidos'] + ' ' + data['nombres'] + '</span></td><td><span id="rol_' + data['id'] + '">'+data['rol']+'</span></td><td><span id="correo_electronico_'+data['id']+'">'+data['correo_electronico'] + '</span></td></tr>');
+                        $('#antiguos').append('<tr class="alert alert-success"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data['id']+'\')">'+data['cedula']+'</a></td><td><span id="nombre_' + data['id'] + '">' + data['apellidos'] + ' ' + data['nombres'] + '</span></td><td><span id="rol_' + data['id'] + '">'+data['rol']+'</span></td><td><span id="correo_electronico_'+data['id']+'">'+data['correo_electronico'] + '</span></td></tr>');
                     }
                     $('#modal').modal('hide');
                 }
