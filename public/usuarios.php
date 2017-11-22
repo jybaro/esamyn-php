@@ -1,8 +1,15 @@
 <?php
 //$us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=usu_rol) AS rol FROM esamyn.esa_usuario ORDER BY usu_cedula");
-$us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=usu_rol) AS rol FROM esamyn.esa_usuario ORDER BY usu_apellidos");
-
 $rol = $_SESSION['rol'];
+
+$filtro = '';
+if ($rol != 1){
+    //Los supervisores solo pueden crear y editar a operadores
+    $filtro = "WHERE usu_rol=3";
+}
+
+$us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=usu_rol) AS rol FROM esamyn.esa_usuario $filtro ORDER BY usu_borrado DESC, usu_apellidos");
+
 ?>
 <h2>Usuarios</h2>
 
@@ -55,8 +62,8 @@ $rol = $_SESSION['rol'];
       <select id="rol" name="rol" class="">
         <?php if ($rol == 1): ?>
         <option value="1">Administrador</option>
-        <?php endif; ?>
         <option value="2">Supervisor</option>
+        <?php endif; ?>
         <option value="3">Operador</option>
       </select>
     </div>
@@ -67,9 +74,10 @@ $rol = $_SESSION['rol'];
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-danger" onclick="p_eliminar()" id="formulario_eliminar">Eliminar usuario</button>
+        <button type="button" class="btn btn-danger" onclick="p_borrar()" id="formulario_eliminar">Eliminar usuario</button>
+        <button type="button" class="btn btn-success" onclick="p_recuperar()" id="formulario_recuperar">Recuperar usuario</button>
         <button type="button" class="btn btn-primary" onclick="p_reiniciar()" id="formulario_reiniciar">Reiniciar contrase&ntilde;a</button>
-        <button type="button" class="btn btn-success" onclick="p_guardar()">Guardar cambios</button>
+        <button type="button" class="btn btn-success" onclick="p_guardar()" id="formulario_guardar">Guardar cambios</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -84,7 +92,7 @@ $rol = $_SESSION['rol'];
   </tr>
 <tbody id="antiguos">
 <?php foreach($us_listado as $i=>$us): ?>
-  <tr>
+<tr class="<?php echo (empty($us['usu_borrado'])?'':'alert alert-danger'); ?>">
     <th><?php echo ($i+1).'.&nbsp;'; ?></th>
     <td><span id=""><a href="#" onclick="p_abrir('<?=$us['usu_id']?>');return false;"><?=$us['usu_cedula']?></a></span></td>
     <td><span id="nombre_<?=$us['usu_id']?>"><?php echo $us['usu_apellidos'].' '.$us['usu_nombres']; ?></span></td>
@@ -103,15 +111,34 @@ function p_abrir(id){
     $.ajax({
         'url':'/_listar/usuario/'+id
     }).done(function(data){
-        data = eval(data);
+        //data = eval(data);
+        data = JSON.parse(data);
         usu = data[0];
         console.log('ABRIENDO USUARIO', usu);
-        $('#formulario_titulo').text(usu['cedula'] + ' "' + usu['nombres'] + ' ' + usu['apellidos'] + '"');
-        $('#formulario_eliminar').show();
-        $("#cedula").prop('disabled', true);
-        for (key in usu){
-            $('#' + key).val(usu[key]);
+
+        if (usu['borrado'] == null) {
+            $('#formulario_titulo').text(usu['cedula'] + ' "' + usu['nombres'] + ' ' + usu['apellidos'] + '"');
+            $('#formulario_eliminar').show();
+            $('#formulario_reiniciar').show();
+            $('#formulario_guardar').show();
+            $('#formulario_recuperar').hide();
+            for (key in usu){
+                $('#' + key).val(usu[key]);
+                $('#' + key).prop('disabled', false);
+            }
+        } else {
+            $('#formulario_titulo').html(usu['cedula'] + ' "' + usu['nombres'] + ' ' + usu['apellidos'] + '" <span class="badge">ELIMINADO</span>');
+            $('#formulario_eliminar').hide();
+            $('#formulario_reiniciar').hide();
+            $('#formulario_guardar').hide();
+            $('#formulario_recuperar').show();
+            for (key in usu){
+                $('#' + key).val(usu[key]);
+                $('#' + key).prop('disabled', true);
+            }
         }
+
+        $("#cedula").prop('disabled', true);
         
         $('#modal').modal('show');
     }).fail(function(){
@@ -120,6 +147,150 @@ function p_abrir(id){
     });
 }
 
+function p_nuevo(){
+
+    $('#formulario_titulo').text('nuevo');
+    $('#formulario').trigger('reset');
+    $('#id').val('');
+    $('#formulario_eliminar').hide();
+    $('#formulario_reiniciar').hide();
+    $('#formulario_recuperar').hide();
+    $('#formulario_guardar').show();
+ 
+    $('#cedula').prop('disabled', false);
+
+    $('#formulario').find(':input').each(function() {
+        switch(this.type) {
+        case 'password':
+        case 'text':
+        case 'textarea':
+        case 'file':
+        case 'select-one':
+        case 'select-multiple':
+        case 'date':
+        case 'number':
+        case 'tel':
+        case 'email':
+            $(this).val('');
+            $(this).prop('disabled', false);
+            break;
+        case 'checkbox':
+        case 'radio':
+            this.checked = false;
+            $(this).prop('disabled', false);
+            break;
+        }
+    });
+
+    $('#modal').modal('show');
+}
+
+function p_recuperar(){
+
+    dataset_json = {};
+    dataset_json['cedula'] = $('#cedula').val();
+    dataset_json['id'] = $('#id').val();
+    dataset_json['recuperar'] = 'recuperar';
+
+    console.log('dataset_json', dataset_json);
+    $.ajax({
+    url: '_guardarUsuario',
+        type: 'POST',
+        //dataType: 'json',
+        data: JSON.stringify(dataset_json),
+        //contentType: 'application/json'
+    }).done(function(data){
+        console.log('RECUPERADO OK, data:', data);
+        //data = eval(data)[0];
+        data = JSON.parse(data);
+        data = data[0];
+        console.log('eval data:', data);
+        if (data['ERROR']) {
+            alert(data['ERROR']);
+        } else {
+            $('#nombre_' + data['id']).parent().parent().removeClass('alert alert-danger alert-info');
+            $('#nombre_' + data['id']).parent().parent().addClass('alert alert-success');
+            $('#modal').modal('hide');
+        }
+
+    }).fail(function(xhr, err){
+        console.error('ERROR AL RECUPERAR', xhr, err);
+        $('#modal').modal('hide');
+    });
+}
+
+function p_borrar(){
+
+    if (confirm('Seguro desea eliminar el Usuario ' + $('#cedula').val() + ' "' + $('#nombres').val() + ' ' + $('#apellidos').val() + '"')) {
+        dataset_json = {};
+        dataset_json['id'] = $('#id').val();
+        dataset_json['cedula'] = $('#cedula').val();
+        dataset_json['borrar'] = 'borrar';
+
+        console.log('dataset_json', dataset_json);
+        $.ajax({
+        url: '_guardarUsuario',
+            type: 'POST',
+            //dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //contentType: 'application/json'
+        }).done(function(data){
+            console.log('Borrado OK, data:', data);
+            //data = eval(data)[0];
+            data = JSON.parse(data);
+            data = data[0];
+            console.log('eval data:', data);
+            //$('#nombre_' + data['id']).parent().parent().remove();
+            if (data['ERROR']) {
+                alert(data['ERROR']);
+            } else {
+                $('#nombre_' + data['id']).parent().parent().removeClass('alert alert-success alert-info');
+                $('#nombre_' + data['id']).parent().parent().addClass('alert alert-danger');
+                $('#modal').modal('hide');
+            }
+
+        }).fail(function(xhr, err){
+            console.error('ERROR AL BORRAR', xhr, err);
+            $('#modal').modal('hide');
+        });
+    }
+}
+
+function p_reiniciar(){
+    if (confirm('Seguro desea reiniciar la clave del Usuario ' + $('#cedula').val() + ' "' + $('#nombres').val() + ' ' + $('#apellidos').val() + '"')) {
+
+        dataset_json = {};
+        dataset_json['id'] = $('#id').val();
+        dataset_json['cedula'] = $('#cedula').val();
+        dataset_json['reiniciar'] = 'reiniciar';
+
+        console.log('dataset_json', dataset_json);
+        $.ajax({
+        url: '_guardarUsuario',
+            type: 'POST',
+            //dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //contentType: 'application/json'
+        }).done(function(data){
+            console.log('Reiniciado OK, data:', data);
+            //data = eval(data)[0];
+            data = JSON.parse(data);
+            data = data[0];
+            console.log('eval data:', data);
+            if (data['ERROR']) {
+                alert(data['ERROR']);
+            } else {
+                $('#nombre_' + data['id']).parent().parent().removeClass('alert alert-success alert-danger');
+                $('#nombre_' + data['id']).parent().parent().addClass('alert alert-info');
+                $('#modal').modal('hide');
+            }
+
+        }).fail(function(xhr, err){
+            console.error('ERROR AL REINICIAR', xhr, err);
+            $('#modal').modal('hide');
+        });
+    }
+}
 
 function p_guardar(){
 
@@ -145,20 +316,29 @@ function p_guardar(){
                     //contentType: 'application/json'
             }).done(function(data){
                 console.log('Guardado OK, data:', data);
-                data = eval(data)[0];
+                //data = eval(data)[0];
+                data = JSON.parse(data);
+                data = data[0];
 
-                if ($("#nombre_" + data['id']).length) { // 0 == false; >0 == true
-                    //ya existe:
-                    $('#cedula_' + data['id']).text(data['cedula']);
-                    $('#nombre_' + data['id']).text(data['nombres'] + ' ' + data['apellidos']);
-                    $('#correo_electronico_' + data['id']).text(data['correo_electronico']);
+                console.log('eval data:', data);
+                if (data['ERROR']) {
+                    alert(data['ERROR']);
                 } else {
-                    //nuevo:
-                    console.log('nuevo USUARIO');
-                    var numero = $('#antiguos').children().length + 1;
-                    $('#antiguos').append('<tr><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data['id']+'\')">'+data['cedula']+'</a></td><td><span id="nombre_' + data['id'] + '">' + data['nombres'] + ' ' + data['apellidos'] + '</span></td><td><span id="rol_' + data['id'] + '">'+data['rol']+'</span></td><td><span id="correo_electronico_'+data['id']+'">'+data['correo_electronico'] + '</span></td></tr>');
+
+                    if ($("#nombre_" + data['id']).length) { // 0 == false; >0 == true
+                        //ya existe:
+                        $('#cedula_' + data['id']).text(data['cedula']);
+                        $('#nombre_' + data['id']).text(data['apellidos'] + ' ' + data['nombres']);
+                        $('#rol_' + data['id']).text(data['rol'] );
+                        $('#correo_electronico_' + data['id']).text(data['correo_electronico']);
+                    } else {
+                        //nuevo:
+                        console.log('nuevo USUARIO');
+                        var numero = $('#antiguos').children().length + 1;
+                        $('#antiguos').append('<tr><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data['id']+'\')">'+data['cedula']+'</a></td><td><span id="nombre_' + data['id'] + '">' + data['apellidos'] + ' ' + data['nombres'] + '</span></td><td><span id="rol_' + data['id'] + '">'+data['rol']+'</span></td><td><span id="correo_electronico_'+data['id']+'">'+data['correo_electronico'] + '</span></td></tr>');
+                    }
+                    $('#modal').modal('hide');
                 }
-                $('#modal').modal('hide');
             }).fail(function(xhr, err){
                 console.error('ERROR AL GUARDAR', xhr, err);
                 $('#modal').modal('hide');
@@ -199,7 +379,8 @@ function p_guardar_old(){
         contentType: 'application/json'
             }).done(function(data){
                 console.log('Guardado OK', data)
-                    data = eval(data);
+                    //data = eval(data);
+                    data = JSON.parse(data);
 
                 if($("#nombre_" + data[0]['id']).length) { // 0 == false; >0 == true
                     //ya existe:
@@ -225,31 +406,20 @@ function p_guardar_old(){
     }
 }
 
-function p_nuevo(){
-
-    $('#formulario_titulo').text('nuevo');
-    $('#formulario').trigger('reset');
-    $('#id').val('');
-    $('#modal').modal('show');
-    $('#formulario_eliminar').hide();
- 
-    $('#cedula').prop('disabled', false);
-
-}
-
-function p_eliminar(cedula, nombre){
+function p_eliminar_old(cedula, nombre){
     if (confirm('Seguro desea eliminar el Usuario ' + $('#cedula').val() + ' "' + $('#nombres').val() + ' ' + $('#apellidos').val() + '"')) {
         var dataset_json = [{id:$('#id').val()}];
+        console.log('dataset_json',dataset_json);
         $.ajax({
             url: '_borrar/usuario',
             type: 'POST',
-            dataType: 'json',
+            //dataType: 'json',
             data: JSON.stringify(dataset_json),
-            //data: dataset_json,
-            contentType: 'application/json'
+            //contentType: 'application/json'
         }).done(function(data){
             console.log('Borrado OK', data)
-                data = eval(data);
+                //data = eval(data);
+                data = JSON.parse(data);
 
             $('#nombre_' + data[0]['id']).parent().parent().remove();
         }).fail(function(xhr, err){
@@ -272,6 +442,7 @@ function verificarCedula(cedula) {
         function (valorPrevio, valorActual, indice) {
           return valorPrevio - (valorActual * (2 - indice % 2)) % 9 - (valorActual == 9) * 9;
         }, 1000) % 10;
+      console.log('Digito calculado', digito_calculado);
       return digito_calculado === digito_verificador;
 }
   }

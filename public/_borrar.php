@@ -22,12 +22,15 @@ function p_formatear_valor_sql($raw){
 
 if (isset($_POST['dataset_json']) && !empty($_POST['dataset_json'])) {
     $dataset_json = $_POST['dataset_json'];
+echo 111;
 } else {
     $dataset_json = file_get_contents("php://input");
+echo 222;
 }
+var_dump($dataset_json);
 
 if (isset($args[0]) && !empty($args[0]) && !empty($dataset_json)) {
-    $tabla = 'esa_'.$args[0];
+    $tabla = 'esa_' . $args[0];
     $dataset = json_decode($dataset_json);
     $dataset = is_array($dataset) ? $dataset : array($dataset);
 
