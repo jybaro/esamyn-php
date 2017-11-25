@@ -1,5 +1,5 @@
 <?php
-$es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_unicodigo");
+$es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_borrado DESC, ess_unicodigo");
 ?>
 
 <h2>Establecimientos de Salud</h2>
@@ -98,8 +98,9 @@ $es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_uni
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-danger" onclick="p_eliminar()" id="formulario_eliminar">Eliminar</button>
-        <button type="button" class="btn btn-success" onclick="p_guardar()">Guardar cambios</button>
+        <button type="button" class="btn btn-danger" onclick="p_borrar()" id="formulario_eliminar">Eliminar</button>
+        <button type="button" class="btn btn-success" onclick="p_recuperar()" id="formulario_recuperar">Recuperar</button>
+        <button type="button" class="btn btn-success" onclick="p_guardar()" id="formulario_guardar">Guardar cambios</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -111,19 +112,39 @@ function p_abrir(ess_id){
     $.ajax({
         'url':'/_listar/establecimiento_salud/'+ess_id
     }).done(function(data){
-        data = eval(data);
+        data = JSON.parse(data);
+        //data = eval(data);
         es = data[0];
-        console.log(es);
-        $('#formulario_titulo').text(es['unicodigo'] + ' "' + es['nombre'] + '"');
-        $('#formulario_eliminar').show();
-        $("#unicodigo").prop('disabled', true);
+        console.log('ABRIENDO ES',es);
+
+        var badge = '';
+        var disabled = false;
+        if (es['borrado'] == null) {
+            $('#formulario_eliminar').show();
+            $('#formulario_guardar').show();
+            $('#formulario_recuperar').hide();
+            disabled = false;
+        
+        } else {
+            badge = '<span class="badge">ELIMINADO</span>';
+            $('#formulario_eliminar').hide();
+            $('#formulario_guardar').hide();
+            $('#formulario_recuperar').show();
+            disabled = true;
+        }
+        $('#formulario_titulo').html(es['unicodigo'] + ' "' + es['nombre'] + '" ' + badge);
         for (key in es){
             $('#' + key).val(es[key]);
+            $('#' + key).prop('disabled', disabled);
         }
+
         $('#canton_typeahead').val(cantones.reduce(function(valorAnterior, valorActual, indice, vector){
             return (valorActual.id == es.canton ? valorActual.name : valorAnterior);
         }, ''));
+
+        $("#unicodigo").prop('disabled', true);
         
+
         $('#modal').modal('show');
     }).fail(function(){
         console.error('ERROR AL ABRIR');
@@ -177,7 +198,131 @@ function p_validar_canton(){
     }
 }
 
+function p_recuperar(){
+
+    dataset_json = {};
+    dataset_json['unicodigo'] = $('#unicodigo').val();
+    dataset_json['id'] = $('#id').val();
+    dataset_json['recuperar'] = 'recuperar';
+
+    console.log('dataset_json', dataset_json);
+    $.ajax({
+    url: '_guardarES',
+        type: 'POST',
+        //dataType: 'json',
+        data: JSON.stringify(dataset_json),
+        //contentType: 'application/json'
+    }).done(function(data){
+        console.log('RECUPERADO OK, data:', data);
+        //data = eval(data)[0];
+        data = JSON.parse(data);
+        data = data[0];
+        console.log('eval data:', data);
+        if (data['ERROR']) {
+            alert(data['ERROR']);
+        } else {
+            $('#nombre_' + data['id']).parent().parent().removeClass('alert alert-danger alert-info');
+            $('#nombre_' + data['id']).parent().parent().addClass('alert alert-success');
+            $('#modal').modal('hide');
+        }
+
+    }).fail(function(xhr, err){
+        console.error('ERROR AL RECUPERAR', xhr, err);
+        alert('Hubo un error al recuperar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+        //$('#modal').modal('hide');
+    });
+}
+
+function p_borrar(){
+
+    if (confirm('Seguro desea eliminar el Establecimiento de Salud ' + $('#unicodigo').val() + ' "' + $('#nombre').val() + '"')) {
+        dataset_json = {};
+        dataset_json['id'] = $('#id').val();
+        dataset_json['unicodigo'] = $('#unicodigo').val();
+        dataset_json['borrar'] = 'borrar';
+
+        console.log('dataset_json', dataset_json);
+        $.ajax({
+        url: '_guardarES',
+            type: 'POST',
+            //dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //contentType: 'application/json'
+        }).done(function(data){
+            console.log('Borrado OK, data:', data);
+            //data = eval(data)[0];
+            data = JSON.parse(data);
+            data = data[0];
+            console.log('eval data:', data);
+            //$('#nombre_' + data['id']).parent().parent().remove();
+            if (data['ERROR']) {
+                alert(data['ERROR']);
+            } else {
+                $('#nombre_' + data['id']).parent().parent().removeClass('alert alert-success alert-info');
+                $('#nombre_' + data['id']).parent().parent().addClass('alert alert-danger');
+                $('#modal').modal('hide');
+            }
+
+        }).fail(function(xhr, err){
+            console.error('ERROR AL BORRAR', xhr, err);
+            alert('Hubo un error al borrar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+            //$('#modal').modal('hide');
+        });
+    }
+}
+
+
 function p_guardar(){
+    if ($('#nombre').val() !== '' && $('#unicodigo').val() !== '' && $('#canton').val() !== '') {
+        var respuestas_json = $('#formulario').serializeArray();
+        console.log('respuestas json', respuestas_json);
+        dataset_json = {};
+        respuestas_json.forEach(function(respuesta_json){
+            var name =  respuesta_json['name'];
+            var value = respuesta_json['value'];
+            dataset_json[name]=value;
+
+        });
+        dataset_json['unicodigo'] = $('#unicodigo').val();
+
+        console.log('dataset_json', dataset_json);
+        $.ajax({
+        url: '_guardarES',
+            type: 'POST',
+            //dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //contentType: 'application/json'
+        }).done(function(data){
+            console.log('Guardado OK', data);
+            data = JSON.parse(data);
+            data = data[0];
+            console.log('eval data:', data);
+            if (data['ERROR']) {
+                alert(data['ERROR']);
+            } else {
+                if ($("#nombre_" + data['id']).length) { // 0 == false; >0 == true
+                    //ya existe:
+                    $('#nombre_' + data['id']).text(data['nombre']);
+                    $('#zona_' + data['id']).text(data['zona']);
+                } else {
+                    //nuevo:
+                    console.log('nuevo ES');
+                    var numero = $('#antiguos').children().length + 1;
+                    $('#antiguos').append('<tr class="alert alert-success"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data['id']+'\')">'+data['unicodigo']+'</a></td><td><span id="nombre_'+data['id']+'">'+data['nombre']+'</span></td><td><span id="zona_'+data['id']+'">'+data['zona']+'</span></td></tr>');
+                }
+                $('#modal').modal('hide');
+            }
+        }).fail(function(xhr, err){
+            console.error('ERROR AL GUARDAR', xhr, err);
+            alert('Hubo un error al guardar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+            //$('#modal').modal('hide');
+        });
+    } else {
+        alert ('Ingrese el UNICÓDIGO, nombre y el cantón');
+    }
+}
+
+function p_guardar_old(){
     if ($('#nombre').val() !== '' && $('#unicodigo').val() !== '' && $('#canton').val() !== '') {
     var respuestas_json = $('#formulario').serializeArray();
     console.log(respuestas_json);
@@ -230,12 +375,38 @@ function p_nuevo(){
     $('#canton').val('');
     $('#modal').modal('show');
     $('#formulario_eliminar').hide();
+    $('#formulario_recuperar').hide();
+    $('#formulario_guardar').show();
  
     $('#unicodigo').prop('disabled', false);
 
+    $('#formulario').find(':input').each(function() {
+        switch(this.type) {
+        case 'password':
+        case 'text':
+        case 'textarea':
+        case 'file':
+        case 'select-one':
+        case 'select-multiple':
+        case 'date':
+        case 'number':
+        case 'tel':
+        case 'email':
+            $(this).val('');
+            $(this).prop('disabled', false);
+            break;
+        case 'checkbox':
+        case 'radio':
+            this.checked = false;
+            $(this).prop('disabled', false);
+            break;
+        }
+    });
+
+    $('#modal').modal('show');
 }
 
-function p_eliminar(unicodigo, nombre){
+function p_eliminar_old(unicodigo, nombre){
     if (confirm('Seguro desea eliminar el Establecimiento de Salud ' + $('#unicodigo').val() + ' "' + $('#nombre').val() + '"')) {
         var dataset_json = [{id:$('#id').val()}];
         $.ajax({
@@ -267,7 +438,7 @@ function p_eliminar(unicodigo, nombre){
 <tbody id="nuevos"></tbody>
 <tbody id="antiguos">
 <?php foreach($es_listado as $i=>$es): ?>
-<tr>
+<tr class="<?php echo (empty($es['ess_borrado']) ? '' : 'alert alert-danger'); ?>">
 <th><?php echo ($i+1).'.&nbsp;'; ?></th>
 <td><a href="#" onclick="p_abrir('<?=$es['ess_id']?>');return false;"><?php echo (empty($es['ess_unicodigo']) ? '[[sin unicodigo]]' : $es['ess_unicodigo']) ; ?></a></td>
 <td><span id="nombre_<?=$es['ess_id']?>"><?php echo $es['ess_nombre']; ?></span></td>

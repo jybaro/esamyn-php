@@ -117,6 +117,7 @@ function p_abrir(id){
         console.log('ABRIENDO USUARIO', usu);
 
         var badge = '';
+        var disabled = false;
         if (usu['borrado'] == null) {
             if (usu['password'] == md5(usu['cedula'])){
                 badge = '<span class="badge">CLAVE ES LA CEDULA</span>';
@@ -127,22 +128,20 @@ function p_abrir(id){
             $('#formulario_eliminar').show();
             $('#formulario_guardar').show();
             $('#formulario_recuperar').hide();
-            for (key in usu){
-                $('#' + key).val(usu[key]);
-                $('#' + key).prop('disabled', false);
-            }
+            disabled = false;
         } else {
             badge = '<span class="badge">ELIMINADO</span>';
             $('#formulario_eliminar').hide();
             $('#formulario_reiniciar').hide();
             $('#formulario_guardar').hide();
             $('#formulario_recuperar').show();
-            for (key in usu){
-                $('#' + key).val(usu[key]);
-                $('#' + key).prop('disabled', true);
-            }
+            disabled = true;
         }
         $('#formulario_titulo').html(usu['cedula'] + ' "' + usu['nombres'] + ' ' + usu['apellidos'] + '" ' + badge);
+        for (key in usu){
+            $('#' + key).val(usu[key]);
+            $('#' + key).prop('disabled', disabled);
+        }
 
         $("#cedula").prop('disabled', true);
         
@@ -221,7 +220,8 @@ function p_recuperar(){
 
     }).fail(function(xhr, err){
         console.error('ERROR AL RECUPERAR', xhr, err);
-        $('#modal').modal('hide');
+        alert('Hubo un error al recuperar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+        //$('#modal').modal('hide');
     });
 }
 
@@ -257,7 +257,8 @@ function p_borrar(){
 
         }).fail(function(xhr, err){
             console.error('ERROR AL BORRAR', xhr, err);
-            $('#modal').modal('hide');
+            alert('Hubo un error al borrar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+            //$('#modal').modal('hide');
         });
     }
 }
@@ -293,7 +294,8 @@ function p_reiniciar(){
 
         }).fail(function(xhr, err){
             console.error('ERROR AL REINICIAR', xhr, err);
-            $('#modal').modal('hide');
+            alert('Hubo un error al reiniciar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+            //$('#modal').modal('hide');
         });
     }
 }
@@ -347,7 +349,8 @@ function p_guardar(){
                 }
             }).fail(function(xhr, err){
                 console.error('ERROR AL GUARDAR', xhr, err);
-                $('#modal').modal('hide');
+                alert('Hubo un error al guardar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+                //$('#modal').modal('hide');
             });
         } else {
             alert ('Ingrese un número de cédula válido');
