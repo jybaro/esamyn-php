@@ -54,7 +54,7 @@ if (!empty($dataset_json)) {
             if ($count_establecimiento_salud_unicodigo == 0) {
                 //crea establecimiento_salud
                 //$campos = 'rol,nombres,apellidos,unicodigo,telefono,correo_electronico';
-                $campos = 'canton,nombre,unicodigo,direccion,telefono,correo_electronico,nombre_responsable,zona,distrito,nivel,tipologia,certificacion';
+                $campos = 'canton,nombre,unicodigo,direccion,telefono,correo_electronico,nombre_responsable,zona,distrito,nivel,tipologia,certificacion,max_usuarios';
                 $campos_array = explode(',', $campos);
                 $sql_insert_campos = '';
                 $sql_insert_valores = '';
@@ -100,6 +100,8 @@ if (!empty($dataset_json)) {
                         case 'certificacion':
                             $_ = "'";
                             break;
+                        case 'max_usuarios':
+                            break;
                         }
 
                         $sql_insert_campos .= $glue . 'ess_' . $campo;
@@ -111,7 +113,7 @@ if (!empty($dataset_json)) {
                 $result = q("INSERT INTO esamyn.esa_establecimiento_salud($sql_insert_campos) VALUES($sql_insert_valores) RETURNING *");
             } else if (!empty($id) && $count_establecimiento_salud_unicodigo == 1) {
                 //actualiza establecimiento_salud
-                $campos = 'canton,nombre,direccion,telefono,correo_electronico,nombre_responsable,zona,distrito,nivel,tipologia,certificacion';
+                $campos = 'canton,nombre,direccion,telefono,correo_electronico,nombre_responsable,zona,distrito,nivel,tipologia,certificacion,max_usuarios';
                 $campos_array = explode(',', $campos);
                 $sql_update = '';
                 $glue = '';
@@ -152,6 +154,8 @@ if (!empty($dataset_json)) {
                             break;
                         case 'certificacion':
                             $_ = "'";
+                            break;
+                        case 'max_usuarios':
                             break;
                         }
 

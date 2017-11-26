@@ -57,7 +57,7 @@ $es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_bor
     </div>
   </div>
   <div class="form-group">
-    <label for="nombre_responsable" class="col-sm-2 control-label">Nombre del responsable:</label>
+    <label for="nombre_responsable" class="col-sm-2 control-label">Nombre responsable:</label>
     <div class="col-sm-10">
       <input type="text" class="form-control" id="nombre_responsable" name="nombre_responsable" placeholder="">
     </div>
@@ -90,6 +90,12 @@ $es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_bor
     <label for="certificacion" class="col-sm-2 control-label">Certificación:</label>
     <div class="col-sm-10">
       <input type="text" class="form-control" id="certificacion" name="certificacion" placeholder="">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="max_usuarios" class="col-sm-2 control-label">Máx usuarios:</label>
+    <div class="col-sm-10">
+      <input type="number" class="form-control" step="1" min="0" max="100" id="max_usuarios" name="max_usuarios" placeholder="">
     </div>
   </div>
 </form>

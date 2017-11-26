@@ -38,7 +38,13 @@ if (!empty($dataset_json)) {
             $result = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_usuario=$usuario AND pei_establecimiento_salud=$establecimiento_salud");
             $count = $result[0]['count'];
             if ($count == 0) {
-                $result = q("INSERT INTO esamyn.esa_permiso_ingreso (pei_usuario, pei_establecimiento_salud) VALUES ($usuario, $establecimiento_salud) RETURNING *");
+                $max_usuarios = q("SELECT ess_max_usuarios FROM esamyn.esa_establecimiento_salud WHERE ess_id=$establecimiento_salud")[0]['ess_max_usuarios'];
+                $count_usuarios = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_establecimiento_salud=$establecimiento_salud")[0]['count'];
+                if ($count_usuarios < $max_usuarios) {
+                    $result = q("INSERT INTO esamyn.esa_permiso_ingreso (pei_usuario, pei_establecimiento_salud) VALUES ($usuario, $establecimiento_salud) RETURNING *");
+                } else {
+                    $result = array(array('ERROR' => 'No se puede asignar el permiso, ya que el Establecimiento de Salud ha alcanzado el numero maximo de usuarios ('.$max_usuarios.')'));
+                }
             } else {
                 $result = array(array('ERROR' => 'El usuario ya tiene permisos de ingreso al Establecimiento de Salud'));
             }
