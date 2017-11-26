@@ -105,6 +105,10 @@ if (!empty($dataset_json)) {
                 $password = md5($dataset->cedula);
                 $sql_insert_valores .= ",'$username','$password'";
                 $result = q("INSERT INTO esamyn.esa_usuario($sql_insert_campos) VALUES($sql_insert_valores) RETURNING *");
+                if ($result) {
+                    $usu_id = $result[0]['usu_id'];
+                    $q("INSERT INTO esamyn.esa_permiso_ingreso(pei_usuario, pei_establecimiento_salud) VALUES ($usu_id, $ess_id)");
+                }
             } else if (!empty($id) && $count_usuarios_cedula == 1) {
                 //actualiza usuario
                 $campos = 'rol,nombres,apellidos,telefono,correo_electronico';
@@ -140,7 +144,14 @@ if (!empty($dataset_json)) {
                 }
                 $sql = ("UPDATE esamyn.esa_usuario SET $sql_update WHERE usu_id=$id RETURNING *");
                 $result = q($sql);
-
+                if ($result) {
+                    $usu_id = $id;
+                    $count_pei = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_usuario=$usu_id")[0]['count'];
+                    if ($count_pei == 0) {
+                        //no tiene permisos, se le asigna por defecto permisos al ES actual
+                        $q("INSERT INTO esamyn.esa_permiso_ingreso(pei_usuario, pei_establecimiento_salud) VALUES ($usu_id, $ess_id)");
+                    }
+                }
             } else {
                 //borra usuarios con cedula repetida
                 $result = array(array('ERROR' => "Ya existe un usuario con cedula $cedula"));

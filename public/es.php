@@ -94,7 +94,25 @@ $es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_bor
   </div>
 </form>
 
+<hr>
+<h5>PERMISOS DE INGRESO</h5>
 
+<form id="formulario_pei" class="form-horizontal">
+  <div class="form-group">
+    <label for="Usuario" class="col-sm-2 control-label">Usuario:</label>
+    <div class="col-sm-8">
+      <input type="hidden" id="usuario" name="usuario" value="">
+      <input class="form-control" required type="text" id="usuario_typeahead" data-provide="typeahead" autocomplete="off" placeholder="Ingrese al menos 3 caracteres" onblur="p_validar_usuario()">
+    </div>
+    <div class="col-sm-1">
+      <button type="button" class="btn btn-info" id="usuario_agregar" onclick="p_guardar_permiso_ingreso()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+    </div>
+  </div>
+</form>
+
+<table class="table table-striped">
+<tbody id="antiguos_pei"></tbody>
+</table>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
@@ -124,6 +142,7 @@ function p_abrir(ess_id){
             $('#formulario_guardar').show();
             $('#formulario_recuperar').hide();
             disabled = false;
+            p_abrir_permiso_ingreso(es['id']);
         
         } else {
             badge = '<span class="badge">ELIMINADO</span>';
@@ -142,6 +161,11 @@ function p_abrir(ess_id){
             return (valorActual.id == es.canton ? valorActual.name : valorAnterior);
         }, ''));
 
+
+        $('#usuario_typeahead').val('');
+        $('#usuario').val('');
+        $('#usuario_agregar').hide();
+
         $("#unicodigo").prop('disabled', true);
         
 
@@ -149,6 +173,22 @@ function p_abrir(ess_id){
     }).fail(function(){
         console.error('ERROR AL ABRIR');
         alert('No se pudo cargar los datos. Contacte con el area de sistemas.');
+    });
+}
+
+function p_abrir_permiso_ingreso(establecimiento_salud) {
+    $('#antiguos_pei').html('');
+    $.get('/_listarPermisoIngreso/' + establecimiento_salud, function(dataset){
+        console.log(dataset);
+        dataset = JSON.parse(dataset);
+
+        if (dataset.respuestas) {
+        dataset.respuestas.forEach(function(data){
+            var numero = $('#antiguos_pei').children().length + 1;
+            $('#antiguos_pei').append('<tr class="alert alert-info" id="pei_'+data['id']+'"><th>'+numero+'.</th><td><span id="nombre_pei_'+data['id']+'">'+data['nombre']+'</span></td><td><button class="btn btn-danger" onclick="p_borrar_permiso_ingreso('+data['usuario']+')"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td></tr>');
+
+        });
+        }
     });
 }
 
@@ -171,23 +211,46 @@ $(document).ready(function() {
         displayField:'name',
         valueField:'id',
         highlighter:function(name){
-        //console.log(item);
-                var ficha = '';
-                ficha +='<div>';
-                ficha +='<h4>'+name+'</h4>';
-                ficha +='</div>';
-                return ficha;
+            //console.log(item);
+            var ficha = '';
+            ficha +='<div>';
+            ficha +='<h4>'+name+'</h4>';
+            ficha +='</div>';
+            return ficha;
 
-            },
-                updater:function(item){
-                    console.log(item);
-                    $('#canton').val(item.id);
-                    escogido.id = item.id;
-                    escogido.name = item.name;
+        },
+        updater:function(item){
+            console.log(item);
+            $('#canton').val(item.id);
+            escogido.id = item.id;
+            escogido.name = item.name;
 
-                    return item.name;
+            return item.name;
 
-                }
+        }
+});
+
+    $('#usuario_typeahead').typeahead({
+        source:function(query, process){
+            $.get('/_listarUsuario/' + query, function(data){
+                data = JSON.parse(data);
+                process(data.lista);
+            });
+        },
+        displayField:'name',
+        valueField:'id',
+        highlighter:function(name){
+            var ficha = '';
+            ficha +='<div>';
+            ficha +='<h4>'+name+'</h4>';
+            ficha +='</div>';
+            return ficha;
+        },
+        updater:function(item){
+            $('#usuario').val(item.id);
+            $('#usuario_agregar').show();
+            return item.name;
+        }
     });
 })
 
@@ -198,6 +261,12 @@ function p_validar_canton(){
     }
 }
 
+function p_validar_usuario(){
+    console.log('on blur usuario')
+    if ($('#usuario').val() == ''){
+        $('#usuario_typeahead').val('');
+    }
+}
 function p_recuperar(){
 
     dataset_json = {};
@@ -271,7 +340,6 @@ function p_borrar(){
     }
 }
 
-
 function p_guardar(){
     if ($('#nombre').val() !== '' && $('#unicodigo').val() !== '' && $('#canton').val() !== '') {
         var respuestas_json = $('#formulario').serializeArray();
@@ -321,6 +389,87 @@ function p_guardar(){
         alert ('Ingrese el UNICÓDIGO, nombre y el cantón');
     }
 }
+
+function p_guardar_permiso_ingreso(){
+    if ($('#usuario').val() !== '') {
+        var respuestas_json = $('#formulario_pei').serializeArray();
+        console.log('respuestas json', respuestas_json);
+        dataset_json = {};
+        dataset_json['usuario'] = $('#usuario').val();
+        dataset_json['establecimiento_salud'] = $('#id').val();
+
+        console.log('dataset_json', dataset_json);
+        $.ajax({
+        url: '_guardarPermisoIngreso',
+            type: 'POST',
+            //dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //contentType: 'application/json'
+        }).done(function(data){
+            console.log('Guardado OK', data);
+            data = JSON.parse(data);
+            data = data[0];
+            console.log('eval data:', data);
+            if (data['ERROR']) {
+                alert(data['ERROR']);
+            } else {
+                console.log('nuevo permiso');
+                var numero = $('#antiguos_pei').children().length + 1;
+                var nombre = $('#usuario_typeahead').val();
+                $('#antiguos_pei').append('<tr class="alert alert-info" id="pei_'+data['id']+'"><th>'+numero+'.</th><td><span id="nombre_pei_'+data['id']+'">'+nombre+'</span></td><td><button class="btn btn-danger" onclick="p_borrar_permiso_ingreso('+data['usuario']+')"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td></tr>');
+            }
+            $('#usuario_agregar').hide();
+            $('#usuario').val('');
+            $('#usuario_typeahead').val('');
+        }).fail(function(xhr, err){
+            console.error('ERROR AL GUARDAR', xhr, err);
+            alert('Hubo un error al guardar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+            //$('#modal').modal('hide');
+        });
+    } else {
+        alert ('Ingrese el usuario');
+    }
+}
+
+
+function p_borrar_permiso_ingreso(usu_id){
+
+    if (confirm('Seguro desea quitar el permiso de ingreso a este usuario?')) {
+        dataset_json = {};
+        dataset_json['establecimiento_salud'] = $('#id').val();
+        dataset_json['usuario'] = usu_id;
+        dataset_json['borrar'] = 'borrar';
+
+        console.log('dataset_json', dataset_json);
+        $.ajax({
+        url: '_guardarPermisoIngreso',
+            type: 'POST',
+            //dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //contentType: 'application/json'
+        }).done(function(data){
+            console.log('Borrado OK, data:', data);
+            //data = eval(data)[0];
+            data = JSON.parse(data);
+            data = data[0];
+            console.log('eval data:', data);
+            if (data['ERROR']) {
+                alert(data['ERROR']);
+            } else {
+                $('#pei_' + data['id']).remove();
+            }
+        }).fail(function(xhr, err){
+            console.error('ERROR AL BORRAR', xhr, err);
+            alert('Hubo un error al borrar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+            //$('#modal').modal('hide');
+        });
+    }
+}
+
+
+
+
+
 
 function p_guardar_old(){
     if ($('#nombre').val() !== '' && $('#unicodigo').val() !== '' && $('#canton').val() !== '') {

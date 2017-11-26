@@ -42,24 +42,54 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
 
     //var_dump($usuario);
     if (true && is_array($usuario) && count($usuario) == 1){
-        echo "<hr>";
-        $_SESSION['cedula'] = $cedula;
-        $_SESSION['usu_id'] = $usuario[0]['usu_id'];
+        //echo "<hr>";
+        //
+        $usu_id = $usuario[0]['usu_id'];
         $rol = $usuario[0]['usu_rol'];
-        $_SESSION['rol'] = $rol;
-        $_SESSION['ess_id'] = $ess_id;
-        $_SESSION['ess_nombre'] = $ess_nombre;
-        $_SESSION['ess'] = $ess;
-        
-        if (isset($_POST['rememberme']) && !empty($_POST['rememberme'])) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), $_COOKIE[session_name()], time() + 60*60*24*30, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+
+        $permiso_ingreso = false;
+
+        if ($rol == 1) {
+            //administradores pueden ingresar a cualquier ES
+            $permiso_ingreso = true;
+        } else {
+            //si no es administrador, se revisa los permisos de ingreso
+            $result = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_usuario = $usu_id AND pei_establecimiento_salud=$ess_id");
+            if ($result[0]['count'] == 1) {
+                $permiso_ingreso = true;
+            } else if ($result[0]['count'] == 0) {
+
+                //Si no tiene permisos, verifica que no sea usuario antiguo donde los permisos no existian, para evitar bloqueos
+                $result = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_usuario = $usu_id");
+                if ($result[0]['count'] == 0) {
+                    //Si no tiene permisos en ningun lado, es usuario antiguo y se le da acceso a ese ES concreto, para evitar bloqueos
+                    $q("INSERT INTO esamyn.esa_permiso_ingreso(pei_usuario, pei_establecimiento_salud) VALUES ($usu_id, $ess_id)");
+                    $permiso_ingreso = true;
+                }  
+            }  
         }
 
-        $destino = ($rol == 1) ? 'admin' : (($rol == 2) ? 'supervisor' : 'operador');
-        header("Location: /$destino");
-        //echo "logueado: ";
-        //var_dump($_SESSION);
+        if ($permiso_ingreso) {
+            $_SESSION['cedula'] = $cedula;
+            $_SESSION['usu_id'] = $su_id;
+            $_SESSION['rol'] = $rol;
+            $_SESSION['ess_id'] = $ess_id;
+            $_SESSION['ess_nombre'] = $ess_nombre;
+            $_SESSION['ess'] = $ess;
+
+            if (isset($_POST['rememberme']) && !empty($_POST['rememberme'])) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), $_COOKIE[session_name()], time() + 60*60*24*30, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+            }
+
+            $destino = ($rol == 1) ? 'admin' : (($rol == 2) ? 'supervisor' : 'operador');
+            header("Location: /$destino");
+            //echo "logueado: ";
+            //var_dump($_SESSION);
+        } else {
+            $error = true;
+            $_SESSION = array();
+        }
     } else {
         $error = true;
         $_SESSION = array();
@@ -137,7 +167,7 @@ foreach($es as $e){
       <?php if($error): ?>
 <div class="alert alert-danger alert-dismissible" role="alert">
   <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-  <strong>Error:</strong> no se encuentra al usuario, inténtelo de nuevo.
+  <strong>Error:</strong><br> No se encuentra al usuario, o no tiene permisos de ingreso para el establecimiento de salud.
 </div>
       <?php endif; ?>
 
