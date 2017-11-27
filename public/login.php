@@ -66,7 +66,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
                     $max_usuarios = q("SELECT ess_max_usuarios FROM esamyn.esa_establecimiento_salud WHERE ess_id=$ess_id")[0]['ess_max_usuarios'];
                     $count_usuarios = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_establecimiento_salud=$ess_id")[0]['count'];
                     if ($count_usuarios < $max_usuarios) {
-                        $q("INSERT INTO esamyn.esa_permiso_ingreso(pei_usuario, pei_establecimiento_salud) VALUES ($usu_id, $ess_id)");
+                        q("INSERT INTO esamyn.esa_permiso_ingreso(pei_usuario, pei_establecimiento_salud) VALUES ($usu_id, $ess_id)");
                         $permiso_ingreso = true;
                     }
                 }  
