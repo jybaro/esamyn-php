@@ -20,7 +20,6 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         //$ess_unicodigo = $ess[0]['ess_unicodigo'];
     }
 
-
     //$usuario = q("SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_password='$password'");
        //echo "<div>SELECT * FROM esamyn.esa_usuario AS usu, esamyn.esa_rol AS rol WHERE usu.usu_rol = rol.rol_id AND usu.usu_cedula='$cedula' AND usu.usu_password='$password'</div>";
     //
@@ -75,11 +74,12 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
 
         if ($permiso_ingreso) {
             $_SESSION['cedula'] = $cedula;
-            $_SESSION['usu_id'] = $su_id;
+            $_SESSION['usu_id'] = $usu_id;
             $_SESSION['rol'] = $rol;
             $_SESSION['ess_id'] = $ess_id;
             $_SESSION['ess_nombre'] = $ess_nombre;
             $_SESSION['ess'] = $ess;
+            l("Ingreso de usuario $cedula con rol $rol al Establecimiento de Salud $ess_id -$ess_nombre-");
 
             if (isset($_POST['rememberme']) && !empty($_POST['rememberme'])) {
                 $params = session_get_cookie_params();
@@ -173,6 +173,7 @@ foreach($es as $e){
   <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
   <strong>Error:</strong><br> No se encuentra al usuario, o no tiene permisos de ingreso para el establecimiento de salud.
 </div>
+<?php l("Intento fallido de ingreso de usuario $cedula al Establecimiento de Salud $ess_id -$ess_nombre-"); ?>
       <?php endif; ?>
 
       </form>

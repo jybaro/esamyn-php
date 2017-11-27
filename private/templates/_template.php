@@ -83,6 +83,7 @@ if (isset($_SESSION['ess_nombre'])){
             <li role="separator" class="divider"></li>
             <li><a href="/preguntas">Contenidos</a></li>
             <li><a href="/crud">Tablas del sistema</a></li>
+            <li><a href="/respaldos">Respaldos</a></li>
             <!--li><a href="/cargarForm">Cargar cat&aacute;logo de formulario</a></li-->
             <?php endif; ?>
             <li role="separator" class="divider"></li>

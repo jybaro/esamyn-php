@@ -25,6 +25,7 @@ function p_preparar_buffer($buffer) {
 ob_start('p_preparar_buffer');
 if (file_exists($component . '.php')) {
     require_once($component . '.php');
+    l("Acceso a componente -$component-, parámetros: " . implode(',', $args));
 } else {
     echo "ERROR: Componente <strong>$component</strong> no instanciado.";
 }

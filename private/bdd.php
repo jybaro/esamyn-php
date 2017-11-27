@@ -2,6 +2,9 @@
 
 function q($sql, $callback = false) {
     global $conn;
+
+    l('SQL: ' . $sql);
+
     $data = null;
     $result = pg_query($conn, $sql);
     if ($result) {
@@ -18,3 +21,9 @@ function q($sql, $callback = false) {
     return $data;
 }
 
+function l($texto){
+    global $conn;
+    $log = pg_escape_literal($texto);
+    $usuario = ((isset($_SESSION['usu_id']) && !empty($_SESSION['usu_id'])) ? $_SESSION['usu_id'] : 'null');
+    pg_send_query($conn, "INSERT INTO esamyn.esa_log(log_texto, log_creado_por) VALUES ($log, $usuario)");
+}

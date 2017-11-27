@@ -43,7 +43,9 @@ if (isset($args[0]) && !empty($args[0]) && !empty($dataset_json)) {
     $metadata = q("SELECT *
         FROM information_schema.columns
         WHERE table_schema = 'esamyn'
-        AND table_name   = '$tabla'");
+        AND table_name   = '$tabla'
+        ORDER BY data_type, is_nullable, column_name
+        ");
     //var_dump($metadata);
     $campo_id = null;
     
@@ -60,7 +62,6 @@ if (isset($args[0]) && !empty($args[0]) && !empty($dataset_json)) {
     $prefijo = explode('_', $campo_id)[0] . '_';
     $sql = '';
     $respuesta = '';
-
 
     foreach($dataset as $data) {
         $data = (array)$data; 
