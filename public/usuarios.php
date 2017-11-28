@@ -13,7 +13,7 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
 ?>
 <h2>Usuarios</h2>
 
-<a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:10px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a>
+<a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:50px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a>
 <div id="modal" class="modal fade" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -70,6 +70,25 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
   </div>
 </form>
 
+<hr>
+<h5>PERMISOS DE INGRESO</h5>
+
+<form id="formulario_pei" class="form-horizontal">
+  <div class="form-group">
+    <label for="establecimiento_salud" class="col-sm-3 control-label">Establecimiento de Salud:</label>
+    <div class="col-sm-7">
+      <input type="hidden" id="establecimiento_salud" name="establecimiento_salud" value="">
+      <input class="form-control" required type="text" id="establecimiento_salud_typeahead" data-provide="typeahead" autocomplete="off" placeholder="Ingrese al menos 3 caracteres" onblur="p_validar_establecimiento_salud()">
+    </div>
+    <div class="col-sm-1">
+      <button type="button" class="btn btn-info" id="establecimiento_salud_agregar" onclick="p_guardar_permiso_ingreso()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+    </div>
+  </div>
+</form>
+
+<table class="table table-striped">
+<tbody id="antiguos_pei"></tbody>
+</table>
 
       </div>
       <div class="modal-footer">
@@ -105,8 +124,40 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
 
 
 <!--script src="/js/bootstrap3-typeahead.min.js"></script-->
+<script src="/js/bootstrap3-typeahead.min.js"></script>
 <script src="/js/md5.min.js"></script>
 <script>
+$(document).ready(function() {
+    $('#establecimiento_salud_typeahead').typeahead({
+        source:function(query, process){
+            $.get('/_listarEstablecimientoSalud/' + query, function(data){
+                data = JSON.parse(data);
+                process(data.lista);
+            });
+        },
+        displayField:'name',
+        valueField:'id',
+        highlighter:function(name){
+            var ficha = '';
+            ficha +='<div>';
+            ficha +='<h4>'+name+'</h4>';
+            ficha +='</div>';
+            return ficha;
+        },
+        updater:function(item){
+            $('#establecimiento_salud').val(item.id);
+            $('#establecimiento_salud_agregar').show();
+            return item.name;
+        }
+    });
+})
+
+function p_validar_establecimiento_salud(){
+    console.log('on blur establecimiento_salud')
+    if ($('#establecimiento_salud').val() == ''){
+        $('#establecimiento_salud_typeahead').val('');
+    }
+}
 function p_abrir(id){
     $.ajax({
         'url':'/_listar/usuario/'+id
@@ -129,6 +180,7 @@ function p_abrir(id){
             $('#formulario_guardar').show();
             $('#formulario_recuperar').hide();
             disabled = false;
+            p_abrir_permiso_ingreso(usu['id']);
         } else {
             badge = '<span class="badge">ELIMINADO</span>';
             $('#formulario_eliminar').hide();
@@ -143,6 +195,9 @@ function p_abrir(id){
             $('#' + key).prop('disabled', disabled);
         }
 
+        $('#establecimiento_salud_typeahead').val('');
+        $('#establecimiento_salud').val('');
+        $('#establecimiento_salud_agregar').hide();
         $("#cedula").prop('disabled', true);
         
         $('#modal').modal('show');
@@ -150,6 +205,97 @@ function p_abrir(id){
         console.error('ERROR AL ABRIR');
         alert('No se pudo cargar los datos. Contacte con el area de sistemas.');
     });
+}
+
+function p_abrir_permiso_ingreso(usuario) {
+    $('#antiguos_pei').html('');
+    $.get('/_listarPermisoIngreso/usuario/' + usuario, function(dataset){
+        console.log(dataset);
+        dataset = JSON.parse(dataset);
+
+        if (dataset.respuestas) {
+        dataset.respuestas.forEach(function(data){
+            var numero = $('#antiguos_pei').children().length + 1;
+            $('#antiguos_pei').append('<tr class="alert alert-info" id="pei_'+data['id']+'"><th>'+numero+'.</th><td><span id="nombre_pei_'+data['id']+'">'+data['nombre']+'</span></td><td><button class="btn btn-danger" onclick="p_borrar_permiso_ingreso('+data['establecimiento_salud']+')"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td></tr>');
+
+        });
+        }
+    });
+}
+
+function p_guardar_permiso_ingreso(){
+    if ($('#establecimiento_salud').val() !== '') {
+        var respuestas_json = $('#formulario_pei').serializeArray();
+        console.log('respuestas json', respuestas_json);
+        dataset_json = {};
+        dataset_json['establecimiento_salud'] = $('#establecimiento_salud').val();
+        dataset_json['usuario'] = $('#id').val();
+
+        console.log('dataset_json', dataset_json);
+        $.ajax({
+        url: '_guardarPermisoIngreso',
+            type: 'POST',
+            //dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //contentType: 'application/json'
+        }).done(function(data){
+            console.log('Guardado OK', data);
+            data = JSON.parse(data);
+            data = data[0];
+            console.log('eval data:', data);
+            if (data['ERROR']) {
+                alert(data['ERROR']);
+            } else {
+                console.log('nuevo permiso');
+                var numero = $('#antiguos_pei').children().length + 1;
+                var nombre = $('#establecimiento_salud_typeahead').val();
+                $('#antiguos_pei').append('<tr class="alert alert-info" id="pei_'+data['id']+'"><th>'+numero+'.</th><td><span id="nombre_pei_'+data['id']+'">'+nombre+'</span></td><td><button class="btn btn-danger" onclick="p_borrar_permiso_ingreso('+data['establecimiento_salud']+')"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td></tr>');
+            }
+            $('#establecimiento_salud_agregar').hide();
+            $('#establecimiento_salud').val('');
+            $('#establecimiento_salud_typeahead').val('');
+        }).fail(function(xhr, err){
+            console.error('ERROR AL GUARDAR', xhr, err);
+            alert('Hubo un error al guardar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+            //$('#modal').modal('hide');
+        });
+    } else {
+        alert ('Ingrese el establecimiento de salud');
+    }
+}
+
+function p_borrar_permiso_ingreso(ess_id){
+
+    if (confirm('Seguro desea quitar el permiso de ingreso a este establecimiento de salud?')) {
+        dataset_json = {};
+        dataset_json['usuario'] = $('#id').val();
+        dataset_json['establecimiento_salud'] = ess_id;
+        dataset_json['borrar'] = 'borrar';
+
+        console.log('dataset_json', dataset_json);
+        $.ajax({
+        url: '_guardarPermisoIngreso',
+            type: 'POST',
+            //dataType: 'json',
+            data: JSON.stringify(dataset_json),
+            //contentType: 'application/json'
+        }).done(function(data){
+            console.log('Borrado OK, data:', data);
+            //data = eval(data)[0];
+            data = JSON.parse(data);
+            data = data[0];
+            console.log('eval data:', data);
+            if (data['ERROR']) {
+                alert(data['ERROR']);
+            } else {
+                $('#pei_' + data['id']).remove();
+            }
+        }).fail(function(xhr, err){
+            console.error('ERROR AL BORRAR', xhr, err);
+            alert('Hubo un error al borrar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+            //$('#modal').modal('hide');
+        });
+    }
 }
 
 function p_nuevo(){

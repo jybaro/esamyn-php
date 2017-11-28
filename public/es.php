@@ -4,7 +4,7 @@ $es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_bor
 
 <h2>Establecimientos de Salud</h2>
 
-<a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:10px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a>
+<a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:50px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a>
 
 <hr />
 <div id="modal" class="modal fade" tabindex="-1" role="dialog">
@@ -184,7 +184,7 @@ function p_abrir(ess_id){
 
 function p_abrir_permiso_ingreso(establecimiento_salud) {
     $('#antiguos_pei').html('');
-    $.get('/_listarPermisoIngreso/' + establecimiento_salud, function(dataset){
+    $.get('/_listarPermisoIngreso/establecimiento_salud/' + establecimiento_salud, function(dataset){
         console.log(dataset);
         dataset = JSON.parse(dataset);
 

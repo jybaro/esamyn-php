@@ -8,11 +8,11 @@ $extension_minima = 3;
 
 if (strlen($query) >= $extension_minima) {
 
-    $result = q("SELECT * FROM esamyn.esa_usuario, esamyn.esa_rol WHERE usu_borrado IS NULL AND usu_rol = rol_id AND (usu_apellidos ILIKE '%$query%' OR usu_cedula LIKE '%$query%') ORDER BY usu_apellidos");
+    $result = q("SELECT * FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL AND (ess_nombre ILIKE '%$query%' OR ess_unicodigo LIKE '%$query%') ORDER BY ess_nombre");
 
     if ($result) {
         foreach($result as $r){
-            $respuesta = array('id' => $r['usu_id'], 'name' => ($r['usu_apellidos'] . ' ' . $r['usu_nombres'] . ' (' . $r['usu_cedula'] . ') - ' . $r['rol_nombre']));
+            $respuesta = array('id' => $r['ess_id'], 'name' => ($r['ess_nombre'] . ' (' . $r['ess_unicodigo'] . ')'));
             $respuestas[] = $respuesta; 
         }
     } else {
