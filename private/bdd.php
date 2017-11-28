@@ -24,6 +24,7 @@ function q($sql, $callback = false) {
 function l($texto){
     global $conn;
     $log = pg_escape_literal($texto);
-    $usuario = ((isset($_SESSION['usu_id']) && !empty($_SESSION['usu_id'])) ? $_SESSION['usu_id'] : 'null');
-    pg_send_query($conn, "INSERT INTO esamyn.esa_log(log_texto, log_creado_por) VALUES ($log, $usuario)");
+    $usuario = ((isset($_SESSION['usu_id']) && !empty($_SESSION['usu_id'])) ? pg_escape_string($_SESSION['usu_id']) : 'null');
+    $ip = ((isset($_SERVER['REMOTE_ADDR']) && !empty($_SERVER['REMOTE_ADDR'])) ? pg_escape_literal($_SERVER['REMOTE_ADDR']) : 'null');
+    pg_send_query($conn, "INSERT INTO esamyn.esa_log(log_texto, log_creado_por, log_ip) VALUES ($log, $usuario, $ip)");
 }

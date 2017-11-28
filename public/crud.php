@@ -51,7 +51,12 @@ if (empty($tabla)) {
         ORDER BY data_type, is_nullable, column_name
         ");
 
-    echo "<script>var tabla='".substr($tabla, 4)."';</script>";
+    $campos_js = array();
+
+    foreach($campos as $campo){
+        $campos_js[] = substr($campo['column_name'], 4);
+    }
+    echo "<script>var tabla='".substr($tabla, 4)."';var campos = ".json_encode($campos_js).";</script>";
     echo "<a href='/crud'><< Regresar al listado de tablas</a>";
     echo "<h1>Tabla $tabla</h1>";
 
@@ -115,14 +120,16 @@ if (empty($tabla)) {
 
 
 <form id="formulario" class="form-horizontal">
-  <?php foreach($campos as $campo): ?>
+  <?php foreach ($campos as $campo): ?>
   <?php $c = substr($campo['column_name'], 4); ?>
+  <?php if ($c != 'creado' && $c != 'modificado'): ?>
   <div class="form-group">
     <label for="<?=$c?>" class="col-sm-2 control-label"><?=str_replace('_', ' ', $c)?></label>
     <div class="col-sm-10">
       <input type="text" class="form-control" id="<?=$c?>" name="<?=$c?>" placeholder="">
     </div>
   </div>
+  <?php endif; ?>
   <?php endforeach; ?>
 </form>
 
@@ -237,7 +244,7 @@ function p_guardar(){
         data: JSON.stringify(dataset_json),
     }).done(function(data){
         console.log('Guardado OK', data);
-        //data = JSON.parse(data);
+        data = JSON.parse(data);
         data = data[0];
 
         if (data['ERROR']) {
@@ -254,19 +261,27 @@ function p_guardar(){
                 var numero = $('#lista_registros').children().length + 1;
                 var celdas = '';
                 var valor = '';
+                var key = '';
+                campos.forEach(function(campo){
+                    valor = (data[campo] == null) ? '' : data[campo];
+                    valor = (campo == 'id' ? '<a href="#" onclick="p_abrir('+data['id']+')">'+data['id']+'</a>' : valor);
+                    celdas += '<td id="dato_'+data['id']+'_'+campo+'">'+valor+'</td>';
+                });
+                /*
                 for (key in data){
-                    $('#dato_' + data['id'] + '_' + key).text(data[key]);
-                    valor = (key == 'id' ? '<a href="#" onclick="p_abrir('+data['id']+')">'+data['id']+'</a>' : data[key])
+                    valor = (key == 'id' ? '<a href="#" onclick="p_abrir('+data['id']+')">'+data['id']+'</a>' : data[key]);
                     celdas += '<td id="dato_'+data['id']+'_'+key+'">'+valor+'</td>';
                 }
+                 */
 
-                $('#lista_registros').append('<tr class="alert alert-success"><th>'+numero+'.</th>' + celdas + '</tr>');
+                console.log('celdas:', celdas, '<tr id="fila_'+data['id']+'" class="alert alert-success"><th>'+numero+'.</th>' + celdas + '</tr>');
+                $('#lista_registros').append('<tr id="fila_'+data['id']+'" class="alert alert-success"><th>'+numero+'.</th>' + celdas + '</tr>');
             }
             $('#fila_' + data['id']).addClass('alert alert-success');
             $('#modal').modal('hide');
         }
-    }).fail(function(){
-        console.log('ERROR AL GUARDAR');
+    }).fail(function(aaa, bbb){
+        console.log('ERROR AL GUARDAR', aaa, bbb);
         alert('No se pudieron guardar los datos.');
     });
 }
