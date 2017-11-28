@@ -93,7 +93,7 @@ if (empty($tabla)) {
             foreach($campos as $campo){
                 $valor = $r[$campo['column_name']];
                 if ($campo['column_name'] == $campo_id ){
-                    echo "<td><a href='#' onclick='p_abrir($valor)'>$valor</a></td>";
+                    echo "<td><a href='#' onclick='p_abrir($valor);return false;'>$valor</a></td>";
                 } else {
                     $campo_nombre = substr($campo['column_name'], 4);
                     echo "<td id='dato_{$id}_{$campo_nombre}'>$valor</td>";
@@ -122,9 +122,10 @@ if (empty($tabla)) {
 <form id="formulario" class="form-horizontal">
   <?php foreach ($campos as $campo): ?>
   <?php $c = substr($campo['column_name'], 4); ?>
+  <?php $label = ucfirst(str_replace('_', ' ', $c)) . ':'; ?>
   <?php if ($c != 'creado' && $c != 'modificado'): ?>
   <div class="form-group">
-    <label for="<?=$c?>" class="col-sm-2 control-label"><?=str_replace('_', ' ', $c)?></label>
+    <label for="<?=$c?>" class="col-sm-2 control-label"><?=$label?></label>
     <div class="col-sm-10">
       <input type="text" class="form-control" id="<?=$c?>" name="<?=$c?>" placeholder="">
     </div>
@@ -264,7 +265,7 @@ function p_guardar(){
                 var key = '';
                 campos.forEach(function(campo){
                     valor = (data[campo] == null) ? '' : data[campo];
-                    valor = (campo == 'id' ? '<a href="#" onclick="p_abrir('+data['id']+')">'+data['id']+'</a>' : valor);
+                    valor = (campo == 'id' ? '<a href="#" onclick="p_abrir('+data['id']+');return false;">'+data['id']+'</a>' : valor);
                     celdas += '<td id="dato_'+data['id']+'_'+campo+'">'+valor+'</td>';
                 });
                 /*
