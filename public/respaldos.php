@@ -1,4 +1,6 @@
+<div class="page-header">
 <h1> Respaldos </h1>
+</div>
 <?php
 
 if (isset($_POST['respaldar']) && !empty($_POST['respaldar'])) {

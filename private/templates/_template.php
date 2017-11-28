@@ -2,15 +2,36 @@
 ?>
 <html>
 <head>
-
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Aplicativo ESAMyN">
+<meta name="author" content="JYBARO">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
 <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
 
+<title>ESAMyN</title>
+
 <style>
-body { padding-top: 70px; }
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  padding-top: 70px;
+  margin-bottom: 60px;
+}
+.footer {
+  position: absolute;
+  padding-top:5px;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #f5f5f5;
+}
 </style>
 
 </head>
@@ -150,6 +171,25 @@ if (isset($_SESSION['cedula'])){
 <script src="/js/moment-with-locales.min.js"></script>
 <script src="/js/bootstrap-datetimepicker.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<?php echo $content; ?>
+
+<div class="container">
+  <?php echo $content; ?>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="text-muted text-center">
+    ESAMyN - <?=date('Y')?>
+    </p>
+    <div class="text-muted text-center">
+      <a href="/buscador">Buscador</a>
+      |
+      <a href="/faq">Preguntas Frecuentes</a>
+      |
+      <a href="/contacto">Formularios de Contacto</a>
+      |
+      <a href="/sitemap">Mapa del sitio</a>
+    </div>
+  </div>
+</footer>
 </body>
 </html>
