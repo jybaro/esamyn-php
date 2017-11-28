@@ -51,6 +51,8 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         if ($rol == 1) {
             //administradores pueden ingresar a cualquier ES
             $permiso_ingreso = true;
+        } else if ($ess['ess_nombre'] === 'Pruebas') {
+            $permiso_ingreso = true;
         } else {
             //si no es administrador, se revisa los permisos de ingreso
             $result = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_usuario = $usu_id AND pei_establecimiento_salud=$ess_id");
