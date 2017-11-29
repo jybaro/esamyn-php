@@ -17,7 +17,7 @@ if (isset($_POST['dataset_json']) && !empty($_POST['dataset_json'])) {
     $dataset_json = file_get_contents("php://input");
 }
 
-//$rol = $_SESSION['rol'];
+$rol_usuario_actual = $_SESSION['rol'];
 $result = array();
 
 if (!empty($dataset_json)) {

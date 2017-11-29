@@ -193,8 +193,12 @@ function p_render_tree($nodo, $extra = '') {
               echo '</div>';
             echo '</div>';
         } else {
+            $largo_campo_bootstrap = 6;
+            if (isset($nodo['padre']['padre']) && !empty($nodo['padre']['padre']) && $tipos_pregunta[$nodo['padre']['padre']['prg_tipo_pregunta']] == 'tabla') {
+                $largo_campo_bootstrap = 12;
+            }
             echo '<div class="row '.$class.'">';
-              echo '<div class="col-md-6">';
+              echo '<div class="col-md-'.$largo_campo_bootstrap.'">';
                 echo '<label for="'.$id.'">'.$texto . ': </label>';
                 echo (($prefijo != '' || $subfijo != '') ? '<div class="input-group">' : '');
                   echo '<input type="text" class="form-control" name="'.$name.'" id="'.$id.'" value="'.$value.'" '.$validacion.'>'; 
@@ -313,7 +317,13 @@ EOT;
             echo ($ayuda != '' ? '<p class="help-block">'.$ayuda.'</p>' : '');
             echo '</div></div>';
         } else {
-            echo '<div class="row '.$class.'"><div class="col-md-6">';
+            $largo_campo_bootstrap = 6;
+            if (isset($nodo['padre']['padre']) && !empty($nodo['padre']['padre']) && $tipos_pregunta[$nodo['padre']['padre']['prg_tipo_pregunta']] == 'tabla') {
+                $largo_campo_bootstrap = 10;
+            } else if ($tipos_pregunta[$nodo['padre']['prg_tipo_pregunta']] == 'numero' ) {
+                $largo_campo_bootstrap = 10;
+            }
+            echo '<div class="row '.$class.'"><div class="col-md-'.$largo_campo_bootstrap.'">';
             echo '<label for="'.$id.'">'.$texto . ': </label>';
             echo (($prefijo != '' || $subfijo != '') ? '<div class="input-group">' : '');
             echo ($prefijo != '' ? '<div class="input-group-addon">'.$prefijo.'</div>' : '');

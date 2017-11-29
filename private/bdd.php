@@ -3,7 +3,9 @@
 function q($sql, $callback = false) {
     global $conn;
 
-    l('SQL: ' . $sql);
+    if (strpos($sql, 'SELECT') === false) {
+        l('SQL: ' . $sql);
+    }
 
     $data = null;
     $result = pg_query($conn, $sql);

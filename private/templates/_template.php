@@ -105,7 +105,7 @@ if (isset($_SESSION['ess_nombre'])){
             <li><a href="/preguntas">Contenidos</a></li>
             <li><a href="/crud">Tablas del sistema</a></li>
             <li><a href="/respaldos">Respaldos</a></li>
-            <li><a href="/log">Log del sistema</a></li>
+            <li><a href="/seguridad">Seguridad</a></li>
             <!--li><a href="/cargarForm">Cargar cat&aacute;logo de formulario</a></li-->
             <?php endif; ?>
             <li role="separator" class="divider"></li>
@@ -173,7 +173,7 @@ if (isset($_SESSION['cedula'])){
 <script src="/js/bootstrap-datetimepicker.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-<div class="container">
+<div style="padding:2px;">
   <?php echo $content; ?>
 </div>
 <footer class="footer">
