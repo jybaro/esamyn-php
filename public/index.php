@@ -22,12 +22,39 @@ function p_preparar_buffer($buffer) {
     return $buffer;
 }
 
+//inicia petición
 ob_start('p_preparar_buffer');
 if (file_exists($component . '.php')) {
-    require_once($component . '.php');
-    l("Acceso a componente -$component-, parámetros: " . implode(',', $args));
+    //verifica seguridades
+    $con_permiso = false;
+    if ($component === 'login') {
+        $con_permiso = true;
+    } else {
+        $rol_id = (isset($_SESSION['rol']) ? $_SESSION['rol'] : 0);
+        $count_permisos = q("SELECT COUNT(*) FROM esamyn.esa_seguridad, esamyn.esa_modulo, esamyn.esa_rol WHERE seg_modulo=mod_id AND seg_rol=rol_id AND mod_texto='$component' AND rol_id=$rol_id")[0]['count'];
+        //echo $count_permisos;
+        //echo ("SELECT COUNT(*) FROM esamyn.esa_seguridad, esamyn.esa_modulo, esamyn.esa_rol WHERE seg_modulo=mod_id AND seg_rol=rol_id AND mod_texto='$component' AND rol_id=$rol_id");
+        if ($count_permisos  == 0){
+            $count_modulos = q("SELECT COUNT(*) FROM esamyn.esa_modulo WHERE mod_texto='$component'")[0]['count'];
+
+            $con_permiso = ($count_modulos == 0);
+        } else {
+            $con_permiso = true;
+        }
+    }
+
+    //if ($con_permiso || true) {
+    if ($con_permiso) {
+        //carga componente
+        require_once($component . '.php');
+        l("Acceso a componente -$component-, parámetros: " . implode(',', $args));
+    } else {
+        echo "ERROR: No tiene permisos para acceder al módulo <strong>$component</strong>.";
+        l("ERROR: intento de acceso no autorizado al módulo $component");
+    }
 } else {
-    echo "ERROR: Componente <strong>$component</strong> no instanciado.";
+    echo "ERROR: Módulo <strong>$component</strong> no instanciado.";
+    l("ERROR:  módulo $component no instanciado.");
 }
 $content = ob_get_contents();
 ob_end_clean();
