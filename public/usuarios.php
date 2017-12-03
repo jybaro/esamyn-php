@@ -85,6 +85,26 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
       <button type="button" class="btn btn-info" id="establecimiento_salud_agregar" onclick="p_guardar_permiso_ingreso()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
     </div>
   </div>
+
+  <div class="form-group">
+    <label for="zonal" class="col-sm-1 control-label">Zonal:</label>
+    <div class="col-sm-9">
+      <input type="hidden" id="zonal" name="zonal" value="">
+      <select id="zonal" name="zonal">
+<?php
+    $result = q("SELECT DISTINCT(ess_zona) AS zonal FROM esamyn.esa_establecimiento_salud");
+    if ($result) {
+        foreach($result as $r) {
+            echo "<option>{$r['zonal']}</option>";
+        }
+    }
+?>
+      </select>
+    </div>
+    <div class="col-sm-1">
+      <button type="button" class="btn btn-info" id="zonal_agregar" onclick="p_guardar_permiso_ingreso('zonal')"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+    </div>
+  </div>
 </form>
 
 <table class="table table-striped">

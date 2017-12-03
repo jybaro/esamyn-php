@@ -355,51 +355,55 @@ function p_borrar(){
 
 function p_guardar(){
     if ($('#nombre').val() !== '' && $('#unicodigo').val() !== '' && $('#canton').val() !== '') {
-        var respuestas_json = $('#formulario').serializeArray();
-        console.log('respuestas json', respuestas_json);
-        dataset_json = {};
-        respuestas_json.forEach(function(respuesta_json){
-            var name =  respuesta_json['name'];
-            var value = respuesta_json['value'];
-            dataset_json[name]=value;
+        if (/^\d{6}$/.test($('#unicodigo').val())) {
+            var respuestas_json = $('#formulario').serializeArray();
+            console.log('respuestas json', respuestas_json);
+            dataset_json = {};
+            respuestas_json.forEach(function(respuesta_json){
+                var name =  respuesta_json['name'];
+                var value = respuesta_json['value'];
+                dataset_json[name]=value;
 
-        });
-        dataset_json['unicodigo'] = $('#unicodigo').val();
+            });
+            dataset_json['unicodigo'] = $('#unicodigo').val();
 
-        console.log('dataset_json', dataset_json);
-        $.ajax({
-        url: '_guardarES',
-            type: 'POST',
-            //dataType: 'json',
-            data: JSON.stringify(dataset_json),
-            //contentType: 'application/json'
-        }).done(function(data){
-            console.log('Guardado OK', data);
-            data = JSON.parse(data);
-            data = data[0];
-            console.log('eval data:', data);
-            if (data['ERROR']) {
-                alert(data['ERROR']);
-            } else {
-                if ($("#nombre_" + data['id']).length) { // 0 == false; >0 == true
-                    //ya existe:
-                    $('#nombre_' + data['id']).text(data['nombre']);
-                    $('#zona_' + data['id']).text(data['zona']);
+            console.log('dataset_json', dataset_json);
+            $.ajax({
+            url: '_guardarES',
+                type: 'POST',
+                //dataType: 'json',
+                data: JSON.stringify(dataset_json),
+                //contentType: 'application/json'
+            }).done(function(data){
+                console.log('Guardado OK', data);
+                data = JSON.parse(data);
+                data = data[0];
+                console.log('eval data:', data);
+                if (data['ERROR']) {
+                    alert(data['ERROR']);
                 } else {
-                    //nuevo:
-                    console.log('nuevo ES');
-                    var numero = $('#antiguos').children().length + 1;
-                    $('#antiguos').append('<tr class="alert alert-success"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data['id']+'\')">'+data['unicodigo']+'</a></td><td><span id="nombre_'+data['id']+'">'+data['nombre']+'</span></td><td><span id="zona_'+data['id']+'">'+data['zona']+'</span></td></tr>');
+                    if ($("#nombre_" + data['id']).length) { // 0 == false; >0 == true
+                        //ya existe:
+                        $('#nombre_' + data['id']).text(data['nombre']);
+                        $('#zona_' + data['id']).text(data['zona']);
+                    } else {
+                        //nuevo:
+                        console.log('nuevo ES');
+                        var numero = $('#antiguos').children().length + 1;
+                        $('#antiguos').append('<tr class="alert alert-success"><th>'+numero+'.</th><td><a href="#" onclick="p_abrir(\''+data['id']+'\')">'+data['unicodigo']+'</a></td><td><span id="nombre_'+data['id']+'">'+data['nombre']+'</span></td><td><span id="zona_'+data['id']+'">'+data['zona']+'</span></td></tr>');
+                    }
+                    $('#modal').modal('hide');
                 }
-                $('#modal').modal('hide');
-            }
-        }).fail(function(xhr, err){
-            console.error('ERROR AL GUARDAR', xhr, err);
-            alert('Hubo un error al guardar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
-            //$('#modal').modal('hide');
-        });
+            }).fail(function(xhr, err){
+                console.error('ERROR AL GUARDAR', xhr, err);
+                alert('Hubo un error al guardar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+                //$('#modal').modal('hide');
+            });
+        } else {
+            alert ('El valor del UNICÓDIGO debe tener seis dígitos.');
+        }
     } else {
-        alert ('Ingrese el UNICÓDIGO, nombre y el cantón');
+        alert ('Ingrese el UNICÓDIGO, nombre y el cantón.');
     }
 }
 

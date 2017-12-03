@@ -108,7 +108,7 @@ Zona:
 <select class="form-control" id="zona" name="zona">
 <option value="">- TODAS LAS ZONAS -</option>
 <?php
-$opciones = q("SELECT DISTINCT(ess_zona) AS nombre FROM esamyn.esa_establecimiento_salud ORDER BY nombre");
+$opciones = q("SELECT DISTINCT(ess_zona) AS nombre FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL ORDER BY nombre");
 ?>
 <?php foreach($opciones as $opcion): ?>
 <?php $selected = ((isset($_POST['zona']) && $opcion['nombre'] == $_POST['zona']) ? 'selected="selected"' : ''); ?>
@@ -134,7 +134,7 @@ Distrito:
 <select class="form-control" id="distrito" name="distrito">
 <option value="">- TODOS LOS DISTRITOS -</option>
 <?php
-$opciones = q("SELECT DISTINCT(ess_distrito) AS nombre FROM esamyn.esa_establecimiento_salud ORDER BY nombre");
+$opciones = q("SELECT DISTINCT(ess_distrito) AS nombre FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL ORDER BY nombre");
 ?>
 <?php foreach($opciones as $opcion): ?>
 <?php $selected = ((isset($_POST['distrito']) && $opcion['nombre'] == $_POST['distrito']) ? 'selected' : ''); ?>
@@ -216,7 +216,7 @@ Nivel:
 <select class="form-control" id="nivel" name="nivel">
 <option value="">- TODOS LOS NIVELES --</option>
 <?php
-$opciones = q("SELECT DISTINCT(ess_nivel) AS nombre FROM esamyn.esa_establecimiento_salud ORDER BY nombre");
+$opciones = q("SELECT DISTINCT(ess_nivel) AS nombre FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL ORDER BY nombre");
 ?>
 <?php foreach($opciones as $opcion): ?>
 <?php $selected = ((isset($_POST['nivel']) && $opcion['nombre'] == $_POST['nivel']) ? 'selected' : ''); ?>
@@ -241,7 +241,7 @@ Tipología:
 <select class="form-control" id="tipologia" name="tipologia">
 <option value="">- TODAS LAS TIPOLOGIAS --</option>
 <?php
-$opciones = q("SELECT REPLACE(nombre, '\"', '') AS nombre FROM (SELECT DISTINCT(ess_tipologia) AS nombre FROM esamyn.esa_establecimiento_salud ORDER BY nombre) AS t");
+$opciones = q("SELECT REPLACE(nombre, '\"', '') AS nombre FROM (SELECT DISTINCT(ess_tipologia) AS nombre FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL ORDER BY nombre) AS t");
 ?>
 <?php foreach($opciones as $opcion): ?>
 <?php $selected = ((isset($_POST['tipologia']) && $opcion['nombre'] == $_POST['tipologia']) ? 'selected' : ''); ?>

@@ -12,7 +12,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
     $password = $_POST['password'];
     $md5_password = md5($password);
     $ess_id = $_POST['establecimiento_salud'];
-    $ess = q("SELECT * FROM esamyn.esa_establecimiento_salud WHERE ess_id = $ess_id" );
+    $ess = q("SELECT * FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL AND ess_id = $ess_id" );
 
     if ($ess) {
         $ess = $ess[0];
@@ -65,7 +65,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
                 $result = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_usuario = $usu_id");
                 if ($result[0]['count'] == 0) {
                     //Si no tiene permisos en ningun lado, es usuario antiguo y se le da acceso a ese ES concreto, para evitar bloqueos
-                    $max_usuarios = q("SELECT ess_max_usuarios FROM esamyn.esa_establecimiento_salud WHERE ess_id=$ess_id")[0]['ess_max_usuarios'];
+                    $max_usuarios = q("SELECT ess_max_usuarios FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL AND ess_id=$ess_id")[0]['ess_max_usuarios'];
                     $count_usuarios = q("SELECT COUNT(*) FROM esamyn.esa_permiso_ingreso WHERE pei_establecimiento_salud=$ess_id")[0]['count'];
                     if ($count_usuarios < $max_usuarios) {
                         q("INSERT INTO esamyn.esa_permiso_ingreso(pei_usuario, pei_establecimiento_salud) VALUES ($usu_id, $ess_id)");
@@ -158,6 +158,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         ) AS provincia
         FROM 
         esamyn.esa_establecimiento_salud 
+        WHERE ess_borrado IS NULL
         ");
 /*
 foreach($es as $e){
