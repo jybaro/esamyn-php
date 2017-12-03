@@ -75,36 +75,59 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
 <h5>PERMISOS DE INGRESO</h5>
 
 <form id="formulario_pei" class="form-horizontal">
-  <div class="form-group">
-    <label for="establecimiento_salud" class="col-sm-3 control-label">Establecimiento de Salud:</label>
-    <div class="col-sm-7">
-      <input type="hidden" id="establecimiento_salud" name="establecimiento_salud" value="">
-      <input class="form-control" required type="text" id="establecimiento_salud_typeahead" data-provide="typeahead" autocomplete="off" placeholder="Ingrese al menos 3 caracteres" onblur="p_validar_establecimiento_salud()">
-    </div>
-    <div class="col-sm-1">
-      <button type="button" class="btn btn-info" id="establecimiento_salud_agregar" onclick="p_guardar_permiso_ingreso()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
-    </div>
-  </div>
 
-  <div class="form-group">
-    <label for="zonal" class="col-sm-1 control-label">Zonal:</label>
-    <div class="col-sm-9">
-      <input type="hidden" id="zonal" name="zonal" value="">
-      <select id="zonal" name="zonal">
-<?php
-    $result = q("SELECT DISTINCT(ess_zona) AS zonal FROM esamyn.esa_establecimiento_salud");
-    if ($result) {
-        foreach($result as $r) {
-            echo "<option>{$r['zonal']}</option>";
-        }
-    }
-?>
-      </select>
+<div>
+
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#tab_establecimiento_salud" aria-controls="tab_establecimiento_salud" role="tab" data-toggle="tab">Establecimiento de Salud</a></li>
+    <li role="presentation"><a href="#tab_zona" aria-controls="tab_zona" role="tab" data-toggle="tab">Zona</a></li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane fade in active" id="tab_establecimiento_salud">
+      <div>&nbsp;</div>
+
+      <div class="form-group">
+        <label for="establecimiento_salud" class="col-sm-3 control-label">Establecimiento de Salud:</label>
+        <div class="col-sm-7">
+          <input type="hidden" id="establecimiento_salud" name="establecimiento_salud" value="">
+          <input class="form-control" required type="text" id="establecimiento_salud_typeahead" data-provide="typeahead" autocomplete="off" placeholder="Ingrese al menos 3 caracteres" onblur="p_validar_establecimiento_salud()">
+        </div>
+        <div class="col-sm-1">
+          <button type="button" class="btn btn-info" id="establecimiento_salud_agregar" onclick="p_guardar_permiso_ingreso()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+        </div>
+      </div>
     </div>
-    <div class="col-sm-1">
-      <button type="button" class="btn btn-info" id="zonal_agregar" onclick="p_guardar_permiso_ingreso('zonal')"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+
+    <div role="tabpanel" class="tab-pane fade" id="tab_zona">
+      <div>&nbsp;</div>
+      <div class="form-group">
+        <label for="zona" class="col-sm-1 control-label">Zona:</label>
+        <div class="col-sm-9">
+          <select id="zona" name="zona" onchange="p_validar_zona()">
+            <option selected></option>
+    <?php
+        $result = q("SELECT DISTINCT(ess_zona) AS zona FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL");
+        if ($result) {
+            foreach($result as $r) {
+                echo "<option value='{$r['zona']}'>{$r['zona']}</option>";
+
+            }
+        }
+    ?>
+          </select>
+        </div>
+        <div class="col-sm-1">
+          <button type="button" class="btn btn-info" id="zona_agregar" onclick="p_guardar_permiso_ingreso('zona')"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+        </div>
+      </div>
     </div>
   </div>
+</div>
+
+
 </form>
 
 <table class="table table-striped">
@@ -171,7 +194,16 @@ $(document).ready(function() {
             return item.name;
         }
     });
-})
+});
+
+function p_validar_zona() {
+    console.log('zona', $('#zona').val());
+    if ($('#zona').val() != '') {
+        $('#zona_agregar').show();
+    } else {
+        $('#zona_agregar').hide();
+    }
+}
 
 function p_validar_establecimiento_salud(){
     console.log('on blur establecimiento_salud')
@@ -219,6 +251,8 @@ function p_abrir(id){
         $('#establecimiento_salud_typeahead').val('');
         $('#establecimiento_salud').val('');
         $('#establecimiento_salud_agregar').hide();
+        $('#zona').val('');
+        $('#zona_agregar').hide();
         $("#cedula").prop('disabled', true);
         
         $('#modal').modal('show');
@@ -244,13 +278,16 @@ function p_abrir_permiso_ingreso(usuario) {
     });
 }
 
-function p_guardar_permiso_ingreso(){
-    if ($('#establecimiento_salud').val() !== '') {
+function p_guardar_permiso_ingreso(zona){
+    zona = (typeof(zona) === 'undefined' ? '' : zona);
+    if ($('#establecimiento_salud').val() !== '' || zona !== '') {
         var respuestas_json = $('#formulario_pei').serializeArray();
         console.log('respuestas json', respuestas_json);
         dataset_json = {};
-        dataset_json['establecimiento_salud'] = $('#establecimiento_salud').val();
+        dataset_json['establecimiento_salud'] = (zona == '' ? $('#establecimiento_salud').val() : '');
         dataset_json['usuario'] = $('#id').val();
+        dataset_json['zona'] = $('#zona').val();
+
 
         console.log('dataset_json', dataset_json);
         $.ajax({
@@ -259,22 +296,30 @@ function p_guardar_permiso_ingreso(){
             //dataType: 'json',
             data: JSON.stringify(dataset_json),
             //contentType: 'application/json'
-        }).done(function(data){
-            console.log('Guardado OK', data);
-            data = JSON.parse(data);
-            data = data[0];
-            console.log('eval data:', data);
-            if (data['ERROR']) {
-                alert(data['ERROR']);
-            } else {
-                console.log('nuevo permiso');
-                var numero = $('#antiguos_pei').children().length + 1;
-                var nombre = $('#establecimiento_salud_typeahead').val();
-                $('#antiguos_pei').append('<tr class="alert alert-info" id="pei_'+data['id']+'"><th>'+numero+'.</th><td><span id="nombre_pei_'+data['id']+'">'+nombre+'</span></td><td><button class="btn btn-danger" onclick="p_borrar_permiso_ingreso('+data['establecimiento_salud']+')"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td></tr>');
-            }
+        }).done(function(dataset){
+            console.log('Guardado OK', dataset);
+            dataset = JSON.parse(dataset);
+            console.log('eval dataset:', dataset);
+            p_abrir_permiso_ingreso($('#id').val());
+
+            /*
+            dataset.forEach(function(data){
+                if (data['ERROR']) {
+                    alert(data['ERROR']);
+                } else {
+                    console.log('nuevo permiso');
+                    var numero = $('#antiguos_pei').children().length + 1;
+                    var nombre = $('#establecimiento_salud_typeahead').val();
+                    $('#antiguos_pei').append('<tr class="alert alert-info" id="pei_'+data['id']+'"><th>'+numero+'.</th><td><span id="nombre_pei_'+data['id']+'">'+nombre+'</span></td><td><button class="btn btn-danger" onclick="p_borrar_permiso_ingreso('+data['establecimiento_salud']+')"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td></tr>');
+                }
+            });
+             */
             $('#establecimiento_salud_agregar').hide();
             $('#establecimiento_salud').val('');
             $('#establecimiento_salud_typeahead').val('');
+
+            $('#zona_agregar').hide();
+            $('#zona').val('');
         }).fail(function(xhr, err){
             console.error('ERROR AL GUARDAR', xhr, err);
             alert('Hubo un error al guardar, verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
