@@ -18,7 +18,7 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
 
 
 
-        $count_encuestas = q("SELECT COUNT(*) FROM esamyn.esa_encuesta WHERE enc_evaluacion=$eva_id AND enc_formulario=$frm_id AND enc_establecimiento_salud=$ess_id AND enc_finalizada=1")[0]['count'];
+        $count_encuestas = q("SELECT COUNT(*) FROM esamyn.esa_encuesta WHERE enc_borrado IS NULL AND enc_evaluacion=$eva_id AND enc_formulario=$frm_id AND enc_establecimiento_salud=$ess_id AND enc_finalizada=1")[0]['count'];
         $umbral_maximo = q("SELECT frm_umbral_maximo FROM esamyn.esa_formulario WHERE frm_id=$frm_id")[0]['frm_umbral_maximo'];
 
 
@@ -228,7 +228,9 @@ $es_nuevo = true;
                     FROM 
                     esamyn.esa_respuesta
                     ,esamyn.esa_encuesta 
-                    WHERE 
+                    WHERE
+                    enc_borrado IS NULL
+                    AND 
                     res_pregunta = prg_id 
                     AND 
                     res_encuesta = enc_id

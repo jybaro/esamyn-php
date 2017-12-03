@@ -48,6 +48,9 @@ if (isset($args[1])) {
         header('Location:/main');
     }
 
+    if (!empty($encuesta['enc_borrado'])) {
+        echo '<div class="alert alert-danger">Este formulario ha sido borrado por el administrador y no será tomado en cuenta en la evaluación ni en los reportes.</div>';
+    }
     $result = q("SELECT * FROM esamyn.esa_respuesta WHERE res_encuesta=$enc_id");
     if ($result) {
         foreach($result as $r){
@@ -686,8 +689,8 @@ body{
     <?php p_render_tree($tree['']); ?>
   <!--input type="button" value="<?php //echo (isset($encuesta) ? 'Guardar cambios' : 'Registrar nueva encuesta') ; ?>" onclick="p_enviar_formulario()" /-->
     <?php if(!$solo_lectura):?>
-    <div class="alert alert-success" style="display:none;" id="guardado_ok">Formulario guardado con éxito</div>
-    <div class="alert alert-danger" style="display:none;" id="guardado_error">No se pudo guardar el formulario</div>
+    <div class="alert alert-success" style="display:none;" id="guardado_ok">Formulario guardado con éxito.</div>
+    <div class="alert alert-danger" style="display:none;" id="guardado_error">No se pudo guardar el formulario, verifique su conexi&oacute;n a Internet.</div>
     <div class="alert alert-warning" style="display:none;" id="guardado_warning"></div>
     <button class="btn btn-success" id="boton_guardar" onclick="p_enviar_formulario()" />Guardar</button>
     <button class="btn btn-primary" id="boton_guardar_salir" onclick="p_enviar_formulario('salir')" />Guardar y salir</button>

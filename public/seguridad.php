@@ -27,6 +27,7 @@ if ($seguridades){
 <?php endforeach; ?>
 </tr>
 </thead>
+<?php if ($modulos): ?>
 <?php foreach($modulos as $count => $modulo): ?>
 <tr>
 <th><?=($count+1) . '. ' . $modulo['mod_texto']?></th>
@@ -35,6 +36,7 @@ if ($seguridades){
 <?php endforeach; ?>
 </tr>
 <?php endforeach; ?>
+<?php endif; ?>
 <tbody>
 </tbody>
 </table>

@@ -30,7 +30,7 @@
       <li>Contenidos</li>
       <li>Tablas del sistema</li>
       <li>Respaldos</li>
-      <li>Log del sistema</li>
+      <li>Seguridad</li>
     </ul>
   </li>
   <li>Menú del usuario

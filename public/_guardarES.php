@@ -1,8 +1,6 @@
 <?php
 
-
 //header('Content-Type: application/json');
-
 
 $ess_id = $_SESSION['ess_id'];
 

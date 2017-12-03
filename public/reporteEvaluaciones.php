@@ -2,6 +2,7 @@
 <?php
 
 $ess_id = $_SESSION['ess_id'];
+$rol_id = $_SESSION['rol'];
 
 /*
 $evaluacion = q("

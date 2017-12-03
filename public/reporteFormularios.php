@@ -90,9 +90,11 @@ foreach($formularios as $formulario) {
             ,esamyn.esa_encuesta 
             ,esamyn.esa_evaluacion
         WHERE 
-            res_encuesta = enc_id 
+            enc_borrado IS NULL
+            AND res_encuesta = enc_id 
             AND eva_id = enc_evaluacion
             AND eva_borrado IS NULL
+            AND eva_activo = 1
             AND enc_formulario = $frm_id 
             AND enc_establecimiento_salud=$ess_id 
         ORDER BY enc_id

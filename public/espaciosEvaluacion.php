@@ -1,7 +1,15 @@
 <h1>Espacios de Evaluaci&oacute;n</h1>
 <?php
+$rol_id = $_SESSION['rol'];
+
 $ess_id = $_SESSION['ess_id'];
 $tipos_evaluacion = q("SELECT * FROM esamyn.esa_tipo_evaluacion");
+
+$filtro = ' AND eva_borrado IS NULL ';
+if ($rol_id == 1) {
+    $filtro = '';
+}
+
 $espacios = q("
     SELECT *
     ,(
@@ -12,7 +20,7 @@ $espacios = q("
     ) AS tev_nombre 
     FROM esamyn.esa_evaluacion 
     WHERE eva_establecimiento_salud=$ess_id 
-    AND eva_borrado IS NULL 
+    $filtro
     ORDER BY eva_creado
 ");
 ?>
@@ -52,8 +60,9 @@ $espacios = q("
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-danger" onclick="p_eliminar()" id="formulario_eliminar">Eliminar usuario</button>
-        <button type="button" class="btn btn-success" onclick="p_guardar()">Guardar cambios</button>
+        <button type="button" class="btn btn-danger" onclick="p_borrar('borrar')" id="formulario_eliminar">Eliminar</button>
+        <button type="button" class="btn btn-success" onclick="p_borrar('recuperar')" id="formulario_recuperar">Recuperar</button>
+        <button type="button" class="btn btn-success" onclick="p_guardar()" id="formulario_guardar">Guardar cambios</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -75,7 +84,7 @@ var eva_activo_id = 0;
 <tbody id="antiguos">
 <?php if ($espacios): ?>
     <?php foreach ($espacios as $i => $espacio): ?>
-    <tr id="espacio_<?=$espacio['eva_id']?>" class="<?php echo ($espacio['eva_activo'] ? 'alert alert-warning' : ''); ?>">
+    <tr id="espacio_<?=$espacio['eva_id']?>" class="<?php echo (!empty($espacio['eva_borrado']) ? 'alert alert-danger' :($espacio['eva_activo'] ? 'alert alert-warning' : '')); ?>">
     <th><?php echo ($i+1).'.&nbsp;'; ?></th>
     <td><span id=""><a href="#" onclick="p_abrir('<?=$espacio['eva_id']?>');return false;"><?=p_formatear_fecha($espacio['eva_creado'])?></a></span></td>
     <td><span id="descripcion_<?=$espacio['eva_id']?>"><?php echo $espacio['eva_descripcion']; ?></span></td>
@@ -120,8 +129,18 @@ function p_abrir(id){
         data = eval(data);
         evaluacion = data[0];
         console.log(evaluacion);
-        $('#formulario_titulo').text(evaluacion['creado'] + ' "' + evaluacion['descripcion'] + '"');
-        $('#formulario_eliminar').hide();
+        var badge = '';
+        if (evaluacion['borrado'] == null) {
+            $('#formulario_eliminar').show();
+            $('#formulario_guardar').show();
+            $('#formulario_recuperar').hide();
+        } else {
+            badge = '<span class="badge">ELIMINADO</span>';
+            $('#formulario_eliminar').hide();
+            $('#formulario_recuperar').show();
+            $('#formulario_guardar').hide();
+        }
+        $('#formulario_titulo').html(evaluacion['creado'] + ' "' + evaluacion['descripcion'] + '" ' + badge);
         //$("#cedula").prop('disabled', true);
         for (key in evaluacion){
             $('#' + key).val(evaluacion[key]);
@@ -187,6 +206,48 @@ function p_guardar(){
     }
 }
 
+function p_borrar(accion){
+    var dataset_json = {};
+    dataset_json['id'] = $('#id').val();
+    dataset_json[accion] = accion;
+
+    console.log('dataset_json', dataset_json);
+
+    $.ajax({
+    url: '_borrarEvaluacion',
+        type: 'POST',
+        //dataType: 'json',
+        data: JSON.stringify(dataset_json),
+        //contentType: 'application/json'
+    }).done(function(data){
+        console.log(accion + ' OK, data:', data);
+        //data = eval(data)[0];
+        data = JSON.parse(data);
+        data = data[0];
+        console.log('eval data:', data);
+        //$('#nombre_' + data['id']).parent().parent().remove();
+        if (data['ERROR']) {
+            alert(data['ERROR']);
+        } else {
+            $('#espacio_' + data['id']).removeClass('alert alert-success alert-danger');
+            if (accion == 'borrar') {
+                $('#espacio_' + data['id']).addClass('alert alert-danger');
+                $('#recuperar_' + data['id']).removeClass('hidden');
+                $('#borrar_' + data['id']).addClass('hidden');
+            } else {
+                $('#espacio_' + data['id']).addClass('alert alert-success');
+                $('#recuperar_' + data['id']).addClass('hidden');
+                $('#borrar_' + data['id']).removeClass('hidden');
+            }
+        }
+
+    }).fail(function(xhr, err){
+        console.error('ERROR AL '+accion, xhr, err);
+        alert('Hubo un error al '+accion+', verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+        //$('#modal').modal('hide');
+    });
+
+}
 function p_nuevo(){
 
     $('#formulario_titulo').text('nuevo');

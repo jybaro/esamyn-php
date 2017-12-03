@@ -76,8 +76,8 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         }
 
         if ($permiso_ingreso) {
-            $seguridad = q("SELECT * FROM esamyn.esa_seguridad, esamyn.esa_modulo WHERE seg_modulo = mod_id AND seg_rol=$rol");
-            $_SESSION['seguridad'] = $seguridad;
+            $seguridades = q("SELECT * FROM esamyn.esa_seguridad, esamyn.esa_modulo WHERE seg_modulo = mod_id AND seg_rol=$rol");
+            $_SESSION['seguridades'] = $seguridades;
             $_SESSION['cedula'] = $cedula;
             $_SESSION['usu_id'] = $usu_id;
             $_SESSION['rol'] = $rol;

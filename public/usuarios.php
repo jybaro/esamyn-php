@@ -5,10 +5,11 @@ $rol = $_SESSION['rol'];
 $filtro = '';
 if ($rol != 1){
     //Los supervisores solo pueden crear y editar a operadores
-    $filtro = "WHERE usu_rol=3";
+    $filtro .= " AND usu_rol=3 ";
+    $filtro .= " AND usu_borrado IS NULL ";
 }
 
-$us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=usu_rol) AS rol FROM esamyn.esa_usuario $filtro ORDER BY usu_borrado DESC, usu_apellidos");
+$us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=usu_rol) AS rol FROM esamyn.esa_usuario WHERE 1=1 $filtro ORDER BY usu_borrado DESC, usu_apellidos");
 
 ?>
 <h2>Usuarios</h2>

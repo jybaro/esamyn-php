@@ -1,7 +1,22 @@
 <?php
 
-require_once('../private/config.php');
-require_once('../private/bdd.php');
+//require_once('../private/config.php');
+//require_once('../private/bdd.php');
+
+$usu_id = $_SESSION['usu_id'];
+$rol_id = $_SESSION['rol'];
+$result = q("SELECT usu_cedula, usu_password FROM esamyn.esa_usuario WHERE usu_id=$usu_id");
+
+if ($result) {
+    $cedula = $result[0]['usu_cedula'];
+    $password = $result[0]['usu_password'];
+    if (md5($cedula) == $password){
+        echo "<div class='alert alert-warning'>Su contrase&ntilde;a actual es su n&uacute;mero de c&eacute;dula, por favor <strong><a href='/cambiarClave'>cambie su contrase&ntilde;a</a></strong> lo m&aacute;s pronto posible por seguridad.</div>";
+    }
+} else {
+    echo "<script>alert('ERROR: Usuario no encontrado. Vuelva a ingresar con su clave de acceso.');window.location.replace('/login');</script>";
+    return;
+}
 
 //var_dump($conn);
 $formularios = q("
@@ -56,6 +71,11 @@ foreach ($formularios as $formulario){
     //echo '</a>';
     echo '</h4>';
 
+    $filtro = ' AND enc_borrado IS NULL ';
+    if ($rol_id == 1) {
+        $filtro = '';
+    } 
+
     $encuestas = q("
         SELECT *,
         (
@@ -74,6 +94,7 @@ foreach ($formularios as $formulario){
         enc_establecimiento_salud=$ess_id
         AND 
         enc_evaluacion=$eva_id
+        $filtro
         ORDER BY enc_creado
         ");
 
@@ -181,6 +202,11 @@ foreach ($formularios as $formulario){
         $count++;
         $enc_id = $encuesta['enc_id'];
         echo '<li>';
+        $css_clase = '';
+        if (!empty($encuesta['enc_borrado'])) {
+            $css_clase = 'alert-danger';
+        }
+        echo "<div id='encuesta_$enc_id' class='alert $css_clase'>";
         echo '<a href="/form/' . $frm_id . '/' . $enc_id . '">';
         //echo $encuesta['enc_creado'];
         $fecha = p_formatear_fecha($encuesta['enc_creado']);
@@ -201,12 +227,17 @@ foreach ($formularios as $formulario){
         echo '</a>';
 
         echo ' ';
+        $estado_llenado = '';
         if ($encuesta['enc_finalizada']) { 
-            $avance_formulario += 100;
+            if (empty($encuesta['enc_borrado'])) {
+                $avance_formulario += 100;
+            }
 
             //echo " (finalizada)"; 
-            $count_finalizado ++;
-            echo "<div style='
+            if (empty($encuesta['enc_borrado'])) {
+                $count_finalizado ++;
+            }
+            $estado_llenado .= "<div style='
                 width:100px;
                 background-color:#9F9;
                 border:solid 1px #000;
@@ -220,7 +251,7 @@ foreach ($formularios as $formulario){
             $count_preguntas_respondidas = $encuesta['enc_numero_preguntas_respondidas'];
             //$avance_formulario += $porcentaje/100;
             $xpos = $porcentaje - 100;
-            echo "<div style='
+            $estado_llenado .= "<div style='
                 width:100px;
             background-image:url(\"/img/degradado.png\");
             background-position:$xpos 0;
@@ -232,7 +263,22 @@ foreach ($formularios as $formulario){
             //print_r(q("SELECT * FROM esamyn.esa_tipo_pregunta"));
             //echo ' ('.(round($count_respuestas * 100 / $count_preguntas, 0)) . "% contestado, $count_respuestas de $count_preguntas preguntas)";
         }
+        echo str_replace("\n", '', $estado_llenado);
 
+        if ($rol_id == 1) {
+            $css_borrar = '';
+            $css_recuperar = '';
+
+            if (empty($encuesta['enc_borrado'])) {
+                $css_recuperar = 'hidden';
+            } else {
+                $css_borrar = 'hidden';
+            }
+            echo '<button id="borrar_'.$enc_id.'" class="btn btn-danger '.$css_borrar.'" onclick="p_borrar(\'borrar\', '.$enc_id.')" ><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Borrar</button>';
+            echo '<span id="recuperar_'.$enc_id.'" class=" '.$css_recuperar.'"><span class="badge">BORRADO</span> <button class="btn btn-success" onclick="p_borrar(\'recuperar\', '.$enc_id.')" ><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Recuperar</button></span>';
+        }
+
+        echo '</div>';
         echo '</li>';
     }
 
@@ -287,4 +333,47 @@ echo '</ul>';
 
 <script>
 document.getElementById('avance_general').innerHTML = <?=$porcentaje_avance_total?>;
+<?php if($rol_id == 1): ?>
+function p_borrar(accion, enc_id){
+    var dataset_json = {'id':enc_id};
+    dataset_json[accion] = accion;
+
+    console.log('dataset_json', dataset_json);
+
+    $.ajax({
+    url: '_borrarEncuesta',
+        type: 'POST',
+        //dataType: 'json',
+        data: JSON.stringify(dataset_json),
+        //contentType: 'application/json'
+    }).done(function(data){
+        console.log(accion + ' OK, data:', data);
+        //data = eval(data)[0];
+        data = JSON.parse(data);
+        data = data[0];
+        console.log('eval data:', data);
+        //$('#nombre_' + data['id']).parent().parent().remove();
+        if (data['ERROR']) {
+            alert(data['ERROR']);
+        } else {
+            $('#encuesta_' + data['id']).removeClass('alert alert-success alert-danger');
+            if (accion == 'borrar') {
+                $('#encuesta_' + data['id']).addClass('alert alert-danger');
+                $('#recuperar_' + data['id']).removeClass('hidden');
+                $('#borrar_' + data['id']).addClass('hidden');
+            } else {
+                $('#encuesta_' + data['id']).addClass('alert alert-success');
+                $('#recuperar_' + data['id']).addClass('hidden');
+                $('#borrar_' + data['id']).removeClass('hidden');
+            }
+        }
+
+    }).fail(function(xhr, err){
+        console.error('ERROR AL '+accion, xhr, err);
+        alert('Hubo un error al '+accion+', verifique que cuenta con Internet y vuelva a intentarlo en unos momentos.');
+        //$('#modal').modal('hide');
+    });
+
+}
+<?php endif; ?>
 </script>

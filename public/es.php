@@ -1,5 +1,12 @@
 <?php
-$es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud ORDER BY ess_borrado DESC, ess_unicodigo");
+$rol = $_SESSION['rol'];
+$filtro = '';
+if ($rol != 1){
+    //Los supervisores solo pueden crear y editar a operadores
+    $filtro .= " AND ess_borrado IS NULL ";
+}
+
+$es_listado = q("SELECT * FROM esamyn.esa_establecimiento_salud WHERE 1=1 $filtro ORDER BY ess_borrado DESC, ess_unicodigo");
 ?>
 
 <h2>Establecimientos de Salud</h2>
@@ -311,7 +318,7 @@ function p_recuperar(){
 function p_borrar(){
 
     if (confirm('Seguro desea eliminar el Establecimiento de Salud ' + $('#unicodigo').val() + ' "' + $('#nombre').val() + '"')) {
-        dataset_json = {};
+        var dataset_json = {};
         dataset_json['id'] = $('#id').val();
         dataset_json['unicodigo'] = $('#unicodigo').val();
         dataset_json['borrar'] = 'borrar';
