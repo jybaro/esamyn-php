@@ -39,7 +39,10 @@ if (isset($args[0]) && !empty($args[0]) && isset($args[1]) && !empty($args[1])) 
             WHERE 
             pei_establecimiento_salud = ess_id
             AND ess_borrado IS NULL
-            AND pei_usuario=$usuario");
+            AND pei_usuario=$usuario
+            ORDER BY ess_nombre
+        ");
+            
 
         if ($result) {
             foreach($result as $r){

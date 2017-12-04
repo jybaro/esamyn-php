@@ -81,7 +81,9 @@ $us_listado = q("SELECT *, (SELECT rol_nombre FROM esamyn.esa_rol WHERE rol_id=u
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
     <li role="presentation" class="active"><a href="#tab_establecimiento_salud" aria-controls="tab_establecimiento_salud" role="tab" data-toggle="tab">Establecimiento de Salud</a></li>
+    <?php if($rol == 1): ?>
     <li role="presentation"><a href="#tab_zona" aria-controls="tab_zona" role="tab" data-toggle="tab">Zona</a></li>
+    <?php endif; ?>
   </ul>
 
   <!-- Tab panes -->
