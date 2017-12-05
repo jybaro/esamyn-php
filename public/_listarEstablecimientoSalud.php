@@ -4,7 +4,7 @@ $respuestas = array();
 $error = array();
 $query = $args[0];
 
-$extension_minima = 3;
+$extension_minima = 2;
 
 if (strlen($query) >= $extension_minima) {
 
