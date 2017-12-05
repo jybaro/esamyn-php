@@ -88,9 +88,11 @@ if (!empty($dataset_json)) {
                         $max_usuarios = $r['ess_max_usuarios'];
                         $count_usuarios = $r['count_usuarios'];
                         //if ($count_usuarios < $max_usuarios) {
-                        $insert_values .= $glue . "($usuario, $establecimiento_salud)"; 
-                        $glue = ',';
-                        //} 
+                        if ($count == 0) {
+                            //inserta si no tiene permisos
+                            $insert_values .= $glue . "($usuario, $establecimiento_salud)"; 
+                            $glue = ',';
+                        } 
                     }
                     $result = q("INSERT INTO esamyn.esa_permiso_ingreso (pei_usuario, pei_establecimiento_salud) VALUES $insert_values  RETURNING *");
                 } else {

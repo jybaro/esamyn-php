@@ -44,6 +44,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         //echo "<hr>";
         //
         $usu_id = $usuario[0]['usu_id'];
+        $usu_nombre = $usuario[0]['usu_nombres'] . ' '. $usuario[0]['usu_apellidos'] ;
         $rol = $usuario[0]['usu_rol'];
         $rol_version = $usuario[0]['rol_version'];
 
@@ -80,6 +81,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
             $_SESSION['seguridades'] = $seguridades;
             $_SESSION['cedula'] = $cedula;
             $_SESSION['usu_id'] = $usu_id;
+            $_SESSION['usu_nombre'] = $usu_nombre;
             $_SESSION['rol'] = $rol;
             $_SESSION['rol_version'] = $rol_version;
             $_SESSION['ess_id'] = $ess_id;
@@ -191,35 +193,43 @@ foreach($es as $e){
 <script type="text/javascript">
 var escogido = {id:"",name:""};
 var es =[<?php
+/*
 $glue = '';
 foreach($es as $e){
     echo $glue.'{id:"'.$e['ess_id'].'",name:"' . str_replace('"', "'", $e['ess_nombre'].' ('.$e['canton'].', '.$e['provincia']) . ') - '.$e['ess_unicodigo'].'"}';
     $glue = ',';
 }
+ */
 ?>];
 $(document).ready(function() {
     $('#establecimiento_salud_typeahead').typeahead({
-        source:es,
+        //source:es,
+        source:function(query, process){
+            $.get('/_listarEstablecimientoSalud/' + query, function(data){
+                data = JSON.parse(data);
+                process(data.lista);
+            });
+        },
         displayField:'name',
         valueField:'id',
         highlighter:function(name){
-        //console.log(item);
-                var ficha = '';
-                ficha +='<div>';
-                ficha +='<h4>'+name+'</h4>';
-                ficha +='</div>';
-                return ficha;
+            //console.log(item);
+            var ficha = '';
+            ficha +='<div>';
+            ficha +='<h4>'+name+'</h4>';
+            ficha +='</div>';
+            return ficha;
 
-            },
-                updater:function(item){
-                    console.log(item);
-                    $('#establecimiento_salud').val(item.id);
-                    escogido.id = item.id;
-                    escogido.name = item.name;
+        },
+        updater:function(item){
+            console.log(item);
+            $('#establecimiento_salud').val(item.id);
+            escogido.id = item.id;
+            escogido.name = item.name;
 
-                    return item.name;
+            return item.name;
 
-                }
+        }
     });
 })
 
