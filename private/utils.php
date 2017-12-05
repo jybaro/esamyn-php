@@ -50,7 +50,8 @@ function p_formatear_fecha($timestamp){
     date_default_timezone_set('America/Guayaquil');
     setlocale(LC_ALL,"es_ES@euro","es_ES","esp");
     $fecha = strftime("%A %d de %B de %Y a las %Hh%S", strtotime($timestamp));
-    $fecha = htmlspecialchars($fecha);
+    $fecha = htmlentities($fecha);
     //$fecha = utf8_encode($fecha);
+    $fecha = empty($fecha)?$timestamp : $fecha;
     return $fecha;
 }
