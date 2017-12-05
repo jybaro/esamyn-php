@@ -241,11 +241,12 @@ Tipología:
 <select class="form-control" id="tipologia" name="tipologia">
 <option value="">- TODAS LAS TIPOLOGIAS --</option>
 <?php
-$opciones = q("SELECT REPLACE(nombre, '\"', '') AS nombre FROM (SELECT DISTINCT(ess_tipologia) AS nombre FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL ORDER BY nombre) AS t");
+//$opciones = q("SELECT REPLACE(nombre, '\"', '') AS nombre FROM (SELECT DISTINCT(ess_tipologia) AS nombre FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL ORDER BY nombre) AS t");
+$opciones = q("SELECT DISTINCT(ess_tipologia) AS nombre FROM esamyn.esa_establecimiento_salud WHERE ess_borrado IS NULL ORDER BY nombre");
 ?>
 <?php foreach($opciones as $opcion): ?>
 <?php $selected = ((isset($_POST['tipologia']) && $opcion['nombre'] == $_POST['tipologia']) ? 'selected' : ''); ?>
-<option value="<?=$opcion['nombre']?>" <?=$selected?>><?=$opcion['nombre']?></option>
+<option value='<?=$opcion['nombre']?>' <?=$selected?>><?=$opcion['nombre']?></option>
 <?php endforeach; ?>
 <option value="">- TODAS LAS TIPOLOGIAS -</option>
 </select> 
