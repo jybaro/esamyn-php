@@ -562,7 +562,7 @@ $misql= $sql;
 
         $buff.= "<$negrilla>" . ($cumple_parametro ? 'SI' : 'NO') . "</$negrilla>";
 
-$buff.="<pre>[$umbral, $porcentaje%, $cantidad_minima, $count_respuestas_cumple, $count_respuestas_totales]".'</pre>';
+//$buff.="<pre>[$umbral, $porcentaje%, $cantidad_minima, $count_respuestas_cumple, $count_respuestas_totales]".'</pre>';
 
         $puntaje_base_grupo += $r['par_puntaje'];
         $puntaje_base_total += $r['par_puntaje'];
@@ -577,7 +577,7 @@ $buff.="<pre>[$umbral, $porcentaje%, $cantidad_minima, $count_respuestas_cumple,
 
     $buff.= '<td class="'.$class_parametro.'" xxxstyle="text-align:right">';
     $buff.= "<$negrilla> $puntaje/".$r['par_puntaje']." $asterisco</$negrilla>";
-$buff .= '<pre>'.$buff_evaluacion.'</pre>';
+//$buff .= '<pre>'.$buff_evaluacion.'</pre>';
     $buff.= '</td>';
 
     $puntaje_total += $puntaje;
