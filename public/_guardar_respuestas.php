@@ -61,14 +61,20 @@ if (isset($_POST['respuestas_json']) && !empty($_POST['respuestas_json'])) {
                 $ess_id
             ) RETURNING enc_id";
 
-echo $sql;
+            echo $sql;
 
-$enc_id = q($sql)[0]['enc_id'];
+            $enc_id = q($sql)[0]['enc_id'];
 
-$es_nuevo = true;
+            $es_nuevo = true;
         } else {
-            //Ya exite la encuesta, se borran todas sus respuestas anteriores:
-            $result = q("DELETE FROM esamyn.esa_respuesta WHERE res_encuesta=$enc_id");
+            //Ya exite la encuesta, SI NO ESTÁ FINALIZADA  se borran todas sus respuestas anteriores:
+            $enc_finalizada = q("SELECT enc_finalizada FROM esamyn.esa_encuesta WHERE enc_id=$enc_id")[0]['enc_finalizada'];
+            if ($enc_finalizada == 0) {
+                $result = q("DELETE FROM esamyn.esa_respuesta WHERE res_encuesta=$enc_id");
+            } else {
+                //no guarda si está finalizada, se para la ejecucion.
+                return;
+            }
         }
         $count = 0;
         $sql_insert_total = '';
