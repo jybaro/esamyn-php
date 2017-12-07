@@ -136,6 +136,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
 <input class="form-control" required type="text" id="establecimiento_salud_typeahead" data-provide="typeahead" autocomplete="off" placeholder="Establecimientos de Salud" onblur="p_validar_es()">
 <!--select name="establecimiento_salud" id="establecimiento_salud" class="form_control" required>
 <?php
+/*
     $es = q("
         SELECT 
         *
@@ -162,6 +163,7 @@ if (isset($_POST['cedula']) && !empty($_POST['cedula']) && isset($_POST['passwor
         esamyn.esa_establecimiento_salud 
         WHERE ess_borrado IS NULL
         ");
+ */
 /*
 foreach($es as $e){
     echo '<option value="'.$e['ess_id'].'">';
